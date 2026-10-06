@@ -1,6 +1,7 @@
 // Daemon events -> react-query cache. Pure helpers plus `applyEvent`.
 import type { QueryClient } from "@tanstack/react-query";
-import type { Event, Job, JobsResult, Run, StatusResult } from "./bindings";
+import type { Event, Job, JobsResult, Run, StatusResult, Summary } from "./bindings";
+import { bumpRevision } from "./snapshots";
 
 export const queryKeys = {
   health: ["health"] as const,
@@ -8,6 +9,8 @@ export const queryKeys = {
   /** Every known run (`ps --all`); `service.state` events patch it in place. */
   runs: ["runs"] as const,
   summary: ["summary"] as const,
+  /** One project's declared services, envs, pipelines and conflicts. */
+  projectSummary: (project: string) => ["summary", project] as const,
   ports: ["ports"] as const,
   /** Recent jobs; `job.state` events patch it in place. */
   jobs: ["jobs"] as const,
@@ -47,6 +50,12 @@ export function applyEvent(qc: QueryClient, ev: Event): void {
         qc.setQueryData<StatusResult>(queryKeys.runs, (old) =>
           old ? { ...old, services: upsertRun(old.services, run) } : old,
         );
+        bumpRevision(qc, queryKeys.runs);
+        const summaryKey = queryKeys.projectSummary(run.project);
+        qc.setQueryData<Summary>(summaryKey, (old) =>
+          old ? { ...old, services: upsertRun(old.services, run) } : old,
+        );
+        bumpRevision(qc, summaryKey);
       }
       void qc.invalidateQueries({ queryKey: queryKeys.summary });
       void qc.invalidateQueries({ queryKey: queryKeys.ports });
@@ -57,6 +66,7 @@ export function applyEvent(qc: QueryClient, ev: Event): void {
         qc.setQueryData<JobsResult>(queryKeys.jobs, (old) =>
           old ? { ...old, jobs: upsertJob(old.jobs, job) } : old,
         );
+        bumpRevision(qc, queryKeys.jobs);
       }
       void qc.invalidateQueries({ queryKey: queryKeys.summary });
       break;
