@@ -1,0 +1,168 @@
+{
+  "jobs": [
+    {
+      "id": "j2",
+      "project": "nuvara",
+      "name": "setup",
+      "kind": "setup",
+      "owner": "agent:x",
+      "steps": [
+        {
+          "run": "make deps"
+        }
+      ],
+      "status": "running",
+      "started_at": "2026-03-14T09:26:54.089793238Z",
+      "duration_ms": 0
+    },
+    {
+      "id": "j3",
+      "project": "alpha",
+      "name": "prod",
+      "kind": "deploy",
+      "env": "prod",
+      "owner": "user",
+      "steps": null,
+      "status": "succeeded",
+      "started_at": "2026-03-14T09:26:54Z",
+      "duration_ms": 0,
+      "log_path": "/l/j3.log"
+    },
+    {
+      "id": "j1",
+      "project": "nuvara",
+      "name": "ci",
+      "kind": "pipeline",
+      "env": "dev",
+      "profiles": [
+        "base"
+      ],
+      "owner": "user",
+      "steps": [
+        {
+          "task": "lint"
+        },
+        {
+          "run": "go test ./..."
+        }
+      ],
+      "args": [
+        "-v",
+        "--race"
+      ],
+      "status": "failed",
+      "step": 2,
+      "pid": 77,
+      "pgid": 77,
+      "exit_code": 3,
+      "started_at": "2026-03-14T09:26:53.589793238Z",
+      "expires_at": "2026-03-14T09:56:53.589793238Z",
+      "finished_at": "2026-03-14T09:26:58.589793238Z",
+      "duration_ms": 5000,
+      "log_path": "/l/j1.log",
+      "error": "step 2 failed"
+    }
+  ],
+  "jobs_nuvara_limit1": [
+    {
+      "id": "j2",
+      "project": "nuvara",
+      "name": "setup",
+      "kind": "setup",
+      "owner": "agent:x",
+      "steps": [
+        {
+          "run": "make deps"
+        }
+      ],
+      "status": "running",
+      "started_at": "2026-03-14T09:26:54.089793238Z",
+      "duration_ms": 0
+    }
+  ],
+  "leases": [
+    {
+      "port": 3100,
+      "project": "nuvara",
+      "service": "api",
+      "port_name": "http",
+      "created_at": "2026-03-14T09:26:53.589793238Z"
+    },
+    {
+      "port": 5432,
+      "project": "nuvara",
+      "service": "db",
+      "port_name": "pg",
+      "created_at": "2026-03-14T09:26:53.590793238Z"
+    },
+    {
+      "port": 9229,
+      "project": "nuvara",
+      "service": "api",
+      "port_name": "debug",
+      "created_at": "2026-03-14T09:26:53Z"
+    }
+  ],
+  "projects": [
+    {
+      "name": "alpha",
+      "path": "/code/alpha",
+      "added_at": "2026-03-14T08:26:53Z"
+    },
+    {
+      "name": "half",
+      "path": "/code/half",
+      "added_at": "2026-03-14T09:26:53.5Z"
+    },
+    {
+      "name": "nuvara",
+      "path": "/code/nuvara",
+      "added_at": "2026-03-14T09:26:53.589793238Z"
+    }
+  ],
+  "runs": [
+    {
+      "project": "alpha",
+      "service": "web",
+      "env": "",
+      "kind": "task",
+      "state": "failed",
+      "health": "unhealthy"
+    },
+    {
+      "project": "nuvara",
+      "service": "api",
+      "env": "dev",
+      "kind": "run",
+      "state": "running",
+      "health": "healthy",
+      "pid": 4242,
+      "pgid": 4242,
+      "owner": "agent:claude",
+      "expires_at": "2026-03-14T09:27:53.589793238Z",
+      "started_at": "2026-03-14T09:26:53.589793238Z",
+      "ports": {
+        "debug": 9229,
+        "http": 3100
+      },
+      "log_path": "/logs/nuvara/api.log"
+    },
+    {
+      "project": "nuvara",
+      "service": "db",
+      "env": "dev",
+      "kind": "compose",
+      "state": "stopped",
+      "health": "unknown",
+      "compose_project": "rocket-nuvara-dev",
+      "profiles": [
+        "base",
+        "extra"
+      ],
+      "container_id": "abc123",
+      "stopped_at": "2026-03-14T09:28:53.589793238Z",
+      "exit_code": 137,
+      "error": "boom \"quoted\" \u003ctag\u003e \u0026 ünï"
+    }
+  ]
+}
