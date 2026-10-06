@@ -60,8 +60,8 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 - [x] R8 (R8a done: `rocket-client` crate) CLI (clap) with identical tree, exit codes, JSON.
 - [x] R9 Scaffold (`rocket init`) + agentdocs.
 - [x] R10 Parity: Go e2e suite green against Rust binary.
-- [ ] R11 Release: goreleaser/cargo build, Homebrew cask.
-- [ ] R12 Remove Go code; update AGENTS.md/README.
+- [x] R11 Release: goreleaser/cargo build, Homebrew cask.
+- [x] R12 Remove Go code; update AGENTS.md/README.
 
 ### Phase T — Tauri desktop
 
@@ -72,7 +72,7 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 - [x] T3 Project detail, services table, inspector, logs.
 - [x] T4 Ports, Jobs (log follow, stale-snapshot guard), Owners.
 - [x] T5 Settings, tray, deploy confirmation, app menus.
-- [ ] T6 Packaging (.app/.dmg), cask, remove `macos/`.
+- [x] T6 Packaging (.app/.dmg), cask, remove `macos/`.
 
 ## Route log
 
@@ -89,9 +89,18 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 | R5 | delegated (Sonnet) | 2.4k Go app lines, 43 tests | e1dbe64 | RDD off |
 | R6 | delegated (Sonnet) | jobs.go; no RED observed, parent mutation check caught | c5d50a6 | RDD off |
 | R7 | delegated (Sonnet) | api + daemon, 36 Go goldens | 8f6d739 | RDD off |
-| R8b+R9 | delegated (Sonnet) + parent version fix | CLI, scaffold, agentdocs | HEAD | RDD off |
+| R8b+R9 | delegated (Sonnet) + parent version fix | CLI, scaffold, agentdocs | 648bb74 | RDD off |
+| R11+R12 | delegated (Sonnet) | e2e port, goreleaser rust, Go removal | 166063c, 47ee958, d3f9a5b | RDD off |
+| T6 | delegated (Sonnet) + parent README fix | sidecar, dmg release, app cask, macos/ removal | 4c94bdf | RDD off |
 
 ## Progress
+
+- 2026-10-06: All tasks done. Rust e2e suite (`cargo test -p rocket-cli
+  --features e2e`) 7/7 green with mutation check; goreleaser snapshot built
+  darwin/linux amd64+arm64; Windows archives dropped (bundled sqlite cannot
+  cross-compile; process adapter was a stub). Desktop .app + aarch64 dmg built
+  locally; sidecar fallback proven under sandbox-exec. Not run: release
+  workflow, cask commit, `brew install --cask`, universal dmg, Linux desktop.
 
 - 2026-10-06: Rust core R2–R10 done. Parity gate: `ROCKET_BIN=target/debug/rocket
   go test -tags integration ./cmd/rocket/` → ok (24.4s, all 8 e2e tests);
@@ -112,6 +121,4 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ## Next step
 
-Execution order: R8a (`rocket-client` crate only) → T0–T5 against the
-current Go daemon (same contract) → R2–R7, R8b (CLI), R9 → R10 parity → R11,
-R12, T6. Next: R11 release, R12 remove Go, T6 packaging + remove macos/.
+User decision: push `feat/rust-tauri-port` and open the single PR to `main`.
