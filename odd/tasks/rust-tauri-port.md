@@ -48,18 +48,18 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 - [x] R0 Workspace skeleton (`Cargo.toml`, `crates/`), CI job (fmt, clippy,
   test), `ROCKET_BIN` override in Go e2e harness.
 - [x] R1 `rocket-domain` + ports traits (port `internal/domain`, `internal/ports`).
-- [ ] R2 `rocket-manifest` (strict YAML, dotenv, JSON Schema) with
+- [x] R2 `rocket-manifest` (strict YAML, dotenv, JSON Schema) with
   `testdata/manifests` golden tests.
-- [ ] R3 Adapters: paths, sqlite (rusqlite, WAL, compatible JSON), events bus,
+- [x] R3 Adapters: paths, sqlite (rusqlite, WAL, compatible JSON), events bus,
   logs follower.
-- [ ] R4 Adapters: process (pgid via nix), probe (TCP/HTTP/lsof), task, compose.
-- [ ] R5 App use cases: up/down/restart/status/reconcile/gc (port app tests).
-- [ ] R6 App jobs: run/setup/deploy/cancel/TTL/job logs.
-- [ ] R7 API server (axum over unix socket + token TCP, SSE), daemon
+- [x] R4 Adapters: process (pgid via nix), probe (TCP/HTTP/lsof), task, compose.
+- [x] R5 App use cases: up/down/restart/status/reconcile/gc (port app tests).
+- [x] R6 App jobs: run/setup/deploy/cancel/TTL/job logs.
+- [x] R7 API server (axum over unix socket + token TCP, SSE), daemon
   composition root, `daemon.json`, flock.
-- [ ] R8 (R8a done: `rocket-client` crate) CLI (clap) with identical tree, exit codes, JSON.
-- [ ] R9 Scaffold (`rocket init`) + agentdocs.
-- [ ] R10 Parity: Go e2e suite green against Rust binary.
+- [x] R8 (R8a done: `rocket-client` crate) CLI (clap) with identical tree, exit codes, JSON.
+- [x] R9 Scaffold (`rocket init`) + agentdocs.
+- [x] R10 Parity: Go e2e suite green against Rust binary.
 - [ ] R11 Release: goreleaser/cargo build, Homebrew cask.
 - [ ] R12 Remove Go code; update AGENTS.md/README.
 
@@ -83,9 +83,21 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 | R8a | delegated (Sonnet) | client + DTOs, 19 endpoints, SSE | 1e44e17 | RDD off |
 | T0+T1 | delegated (Sonnet) | scaffold + bridge, many files | 9e87ae3 | RDD off |
 | T2+T3 | delegated (Sonnet) | UI multi-file | 6636070 | RDD off |
-| T4+T5 | delegated (Sonnet) | UI + tray/menu multi-file | HEAD | RDD off |
+| T4+T5 | delegated (Sonnet) | UI + tray/menu multi-file | 4dd8f63 | RDD off |
+| R2 | delegated (Sonnet) | yaml.v3 port, 313-case Go oracle | c595f78 | RDD off |
+| R3+R4 | delegated (Sonnet) | 7 adapters, Go state.db fixture | 413fcd6 | RDD off |
+| R5 | delegated (Sonnet) | 2.4k Go app lines, 43 tests | e1dbe64 | RDD off |
+| R6 | delegated (Sonnet) | jobs.go; no RED observed, parent mutation check caught | c5d50a6 | RDD off |
+| R7 | delegated (Sonnet) | api + daemon, 36 Go goldens | 8f6d739 | RDD off |
+| R8b+R9 | delegated (Sonnet) + parent version fix | CLI, scaffold, agentdocs | HEAD | RDD off |
 
 ## Progress
+
+- 2026-10-06: Rust core R2–R10 done. Parity gate: `ROCKET_BIN=target/debug/rocket
+  go test -tags integration ./cmd/rocket/` → ok (24.4s, all 8 e2e tests);
+  `cargo test --workspace` green. Known deviations: `--json` prints `[]`
+  where Go printed `null` for nil slices; clap usage-error wording differs;
+  no `completion` command; JSON `<>&` escaping matched per Go encoder.
 
 - 2026-10-06: Desktop T0–T5 done against Go daemon: Tauri 2.12, React 19,
   Vite 8, Tailwind 4.3, shadcn 4 (base-ui), react-query, zustand, ts-rs
@@ -102,4 +114,4 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 Execution order: R8a (`rocket-client` crate only) → T0–T5 against the
 current Go daemon (same contract) → R2–R7, R8b (CLI), R9 → R10 parity → R11,
-R12, T6. Next: R2 (manifest).
+R12, T6. Next: R11 release, R12 remove Go, T6 packaging + remove macos/.
