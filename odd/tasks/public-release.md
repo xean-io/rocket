@@ -67,4 +67,4 @@ Out of scope: signing/notarizing the macOS app in `macos/`.
 
 ## Next step
 
-None required. Optional: archive the unused `xean-io/homebrew-tap` repo.
+None required. `xean-io/homebrew-tap` archived (description points to this repo's tap).
