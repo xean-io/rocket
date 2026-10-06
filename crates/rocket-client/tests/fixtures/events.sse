@@ -1,0 +1,8 @@
+event: service.state
+data: {"type":"service.state","time":"2026-10-05T00:14:10.5Z","project":"nuvara","service":"api","state":"running","run":{"project":"nuvara","service":"api","env":"dev","kind":"run","state":"running","health":"healthy","pid":8635,"ports":{"http":3002}}}
+
+: ping
+
+event: log.line
+data: {"type":"log.line","time":"2026-10-05T00:14:11Z","project":"nuvara","service":"api","line":"listening on :3002"}
+
