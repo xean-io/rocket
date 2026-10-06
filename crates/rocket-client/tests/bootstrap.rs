@@ -12,14 +12,12 @@ use rocket_client::{
     find_rocket_bin_in,
 };
 use std::ffi::OsStr;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 fn script(dir: &Path, name: &str, body: &str) -> PathBuf {
     let p = dir.join(name);
-    std::fs::write(&p, format!("#!/bin/sh\n{body}\n")).unwrap();
-    std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+    write_executable(&p, &format!("#!/bin/sh\n{body}\n"));
     p
 }
 
@@ -262,4 +260,28 @@ async fn tcp_transport_waits_for_daemon_json_and_authenticates() {
             .all(|h| h.as_deref() == Some("Bearer tok"))
     );
     writer.await.unwrap();
+}
+
+/// Writes an executable script from a child process. Writing it from this
+/// multithreaded test process would let a concurrent fork inherit the open
+/// write descriptor, and executing the script then fails with ETXTBSY.
+fn write_executable(path: &std::path::Path, body: &str) {
+    use std::io::Write;
+    let mut child = std::process::Command::new("/bin/sh")
+        .args(["-c", "cat > \"$1\" && chmod 755 \"$1\"", "sh"])
+        .arg(path)
+        .stdin(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(body.as_bytes())
+        .unwrap();
+    assert!(
+        child.wait().unwrap().success(),
+        "writing {}",
+        path.display()
+    );
 }

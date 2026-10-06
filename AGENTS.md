@@ -12,7 +12,7 @@ cargo build -p rocket-cli                          # target/debug/rocket
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace                             # unit tests: hermetic, no daemon or network
-cargo test -p rocket-cli --features e2e            # e2e: real daemon + processes (needs python3, free ports 18431-18433/18531)
+cargo test -p rocket-cli -p rocket-daemon --features rocket-cli/e2e,rocket-daemon/e2e   # e2e: real daemon + processes (needs python3, free ports 18431-18433/18531)
 cargo test -p rocket-adapters -- --ignored         # Docker-backed compose tests (need a Docker daemon)
 ```
 

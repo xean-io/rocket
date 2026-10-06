@@ -11,6 +11,17 @@ repository.workspace = true
 name = "rocketd"
 path = "src/main.rs"
 
+[features]
+# Opt-in end-to-end tests (tests/e2e.rs): a real daemon supervising the
+# fixture's python3 http.server services. Run with
+# `cargo test -p rocket-daemon --features e2e`.
+e2e = []
+
+[[test]]
+name = "e2e"
+path = "tests/e2e.rs"
+required-features = ["e2e"]
+
 [dependencies]
 rocket-domain = { path = "../rocket-domain" }
 rocket-app = { path = "../rocket-app" }

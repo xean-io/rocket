@@ -94,11 +94,9 @@ async fn task_runs_under_process_runner() {
 #[cfg(unix)]
 #[tokio::test]
 async fn task_argv_runs_under_process_runner_with_a_fixture_binary() {
-    use std::os::unix::fs::PermissionsExt;
     let dir = tempfile::tempdir().unwrap();
     let bin = dir.path().join("task-fixture");
-    std::fs::write(&bin, "#!/bin/sh\necho \"argv:$*\" \"name:$NAME\"\n").unwrap();
-    std::fs::set_permissions(&bin, std::fs::Permissions::from_mode(0o755)).unwrap();
+    write_executable(&bin, "#!/bin/sh\necho \"argv:$*\" \"name:$NAME\"\n");
     let d = Driver::with_bin(bin.to_str().unwrap());
     let (code, out) = run_and_read(
         d.argv("hello", &strings(&["a", "b"])),
@@ -117,4 +115,29 @@ fn which(bin: &str) -> Option<std::path::PathBuf> {
             .map(|d| d.join(bin))
             .find(|c| c.is_file())
     })
+}
+
+#[cfg(unix)]
+/// Writes an executable script from a child process. Writing it from this
+/// multithreaded test process would let a concurrent fork inherit the open
+/// write descriptor, and executing the script then fails with ETXTBSY.
+fn write_executable(path: &std::path::Path, body: &str) {
+    use std::io::Write;
+    let mut child = std::process::Command::new("/bin/sh")
+        .args(["-c", "cat > \"$1\" && chmod 755 \"$1\"", "sh"])
+        .arg(path)
+        .stdin(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(body.as_bytes())
+        .unwrap();
+    assert!(
+        child.wait().unwrap().success(),
+        "writing {}",
+        path.display()
+    );
 }

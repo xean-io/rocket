@@ -116,15 +116,38 @@ fn named_volumes_error_messages_match_go() {
 // ---- fixture-script tests (unix) -------------------------------------------
 
 #[cfg(unix)]
+/// Writes an executable script from a child process. Writing it from this
+/// multithreaded test process would let a concurrent fork inherit the open
+/// write descriptor, and executing the script then fails with ETXTBSY.
+fn write_executable(path: &std::path::Path, body: &str) {
+    use std::io::Write;
+    let mut child = std::process::Command::new("/bin/sh")
+        .args(["-c", "cat > \"$1\" && chmod 755 \"$1\"", "sh"])
+        .arg(path)
+        .stdin(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(body.as_bytes())
+        .unwrap();
+    assert!(
+        child.wait().unwrap().success(),
+        "writing {}",
+        path.display()
+    );
+}
+
+#[cfg(unix)]
 mod fixture {
     use super::*;
-    use std::os::unix::fs::PermissionsExt;
     use std::path::Path;
 
     fn write_script(dir: &Path, name: &str, body: &str) -> String {
         let path = dir.join(name);
-        std::fs::write(&path, body).unwrap();
-        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+        write_executable(&path, body);
         path.to_str().unwrap().to_string()
     }
 

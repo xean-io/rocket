@@ -97,7 +97,7 @@ verifies the signature, logs the result and exits; it never installs.
 ```sh
 cargo build -p rocket-cli                     # target/debug/rocket
 cargo test --workspace                        # unit tests: hermetic, no daemon or network
-cargo test -p rocket-cli --features e2e       # end-to-end: real daemon and processes (needs python3)
+cargo test -p rocket-cli -p rocket-daemon --features rocket-cli/e2e,rocket-daemon/e2e   # end-to-end: real daemon and processes (needs python3)
 ```
 
 The desktop app is covered in [Desktop app](#desktop-app) below.
