@@ -30,8 +30,22 @@ serde_json.workspace = true
 time = { workspace = true, features = ["local-offset"] }
 tokio.workspace = true
 
+[features]
+# Opt-in end-to-end suite (tests/e2e): drives the built `rocket` binary against a
+# real daemon and real subprocesses, so it needs python3 and free local ports.
+# Run with `cargo test -p rocket-cli --features e2e`.
+e2e = []
+
+[[test]]
+name = "e2e"
+path = "tests/e2e/main.rs"
+required-features = ["e2e"]
+
 [dev-dependencies]
 tempfile.workspace = true
+
+[target.'cfg(unix)'.dev-dependencies]
+nix.workspace = true
 
 [lints]
 workspace = true
