@@ -38,7 +38,7 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 - Strategy: `single-pr` (user choice 2026-10-06): one PR from
   `feat/rust-tauri-port` to `main`; work-unit commits per task inside it.
 - Forecast: ~18-22k authored changed lines (Rust ~11k + tests ~7k, Tauri ~5k),
-  well above the 400-line budget → chained PRs.
+  well above the 400-line budget; single PR by user choice.
 - RDD: off (global) at feature start.
 
 ## Tasks
@@ -57,7 +57,7 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 - [ ] R6 App jobs: run/setup/deploy/cancel/TTL/job logs.
 - [ ] R7 API server (axum over unix socket + token TCP, SSE), daemon
   composition root, `daemon.json`, flock.
-- [ ] R8 `rocket-client` crate + CLI (clap) with identical tree, exit codes, JSON.
+- [ ] R8 (R8a done: `rocket-client` crate) CLI (clap) with identical tree, exit codes, JSON.
 - [ ] R9 Scaffold (`rocket init`) + agentdocs.
 - [ ] R10 Parity: Go e2e suite green against Rust binary.
 - [ ] R11 Release: goreleaser/cargo build, Homebrew cask.
@@ -65,13 +65,13 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ### Phase T — Tauri desktop
 
-- [ ] T0 Scaffold `apps/desktop`: Tauri v2, React, Vite, TS, Tailwind, shadcn.
-- [ ] T1 Tauri backend: `rocket-client` commands, SSE → frontend events,
+- [x] T0 Scaffold `apps/desktop`: Tauri v2, React, Vite, TS, Tailwind, shadcn.
+- [x] T1 Tauri backend: `rocket-client` commands, SSE → frontend events,
   daemon auto-start, 401 token refresh.
-- [ ] T2 XEAN theme, shell layout, sidebar, navigation, shortcuts.
-- [ ] T3 Project detail, services table, inspector, logs.
-- [ ] T4 Ports, Jobs (log follow, stale-snapshot guard), Owners.
-- [ ] T5 Settings, tray, deploy confirmation, app menus.
+- [x] T2 XEAN theme, shell layout, sidebar, navigation, shortcuts.
+- [x] T3 Project detail, services table, inspector, logs.
+- [x] T4 Ports, Jobs (log follow, stale-snapshot guard), Owners.
+- [x] T5 Settings, tray, deploy confirmation, app menus.
 - [ ] T6 Packaging (.app/.dmg), cask, remove `macos/`.
 
 ## Route log
@@ -80,8 +80,17 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 |---|---|---|---|---|
 | R0 | delegated (Sonnet) | 6 files, CI + harness | 5af21ff | RDD off |
 | R1 | delegated (Sonnet) | ~800 Go lines → crate + tests | 89d2434 | RDD off |
+| R8a | delegated (Sonnet) | client + DTOs, 19 endpoints, SSE | 1e44e17 | RDD off |
+| T0+T1 | delegated (Sonnet) | scaffold + bridge, many files | 9e87ae3 | RDD off |
+| T2+T3 | delegated (Sonnet) | UI multi-file | 6636070 | RDD off |
+| T4+T5 | delegated (Sonnet) | UI + tray/menu multi-file | HEAD | RDD off |
 
 ## Progress
+
+- 2026-10-06: Desktop T0–T5 done against Go daemon: Tauri 2.12, React 19,
+  Vite 8, Tailwind 4.3, shadcn 4 (base-ui), react-query, zustand, ts-rs
+  bindings; tray + native menus; 74 vitest + 19 Rust tests. Screenshots in
+  `.verification/` (gitignored). Not hand-verified: tray/menu clicks.
 
 - 2026-10-06: R0+R1 done: workspace (tokio, axum, rusqlite bundled, nix,
   time, async-trait for dyn ports), domain crate with Go-JSON byte-compat
@@ -93,4 +102,4 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 Execution order: R8a (`rocket-client` crate only) → T0–T5 against the
 current Go daemon (same contract) → R2–R7, R8b (CLI), R9 → R10 parity → R11,
-R12, T6. Next: R8a.
+R12, T6. Next: R2 (manifest).
