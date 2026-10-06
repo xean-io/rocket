@@ -1,0 +1,57 @@
+200
+{
+  "project": {
+    "name": "rocket-fixture",
+    "root": "/private/tmp/rkg29j56nvn/proj",
+    "default_env": "dev",
+    "envs": [
+      "dev",
+      "stage"
+    ],
+    "pipelines": [
+      "broken",
+      "check",
+      "echo-args",
+      "slow"
+    ],
+    "deploy_envs": [
+      "stage"
+    ]
+  },
+  "services": [
+    {
+      "project": "rocket-fixture",
+      "service": "fixed",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    },
+    {
+      "project": "rocket-fixture",
+      "service": "sleeper",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    },
+    {
+      "project": "rocket-fixture",
+      "service": "static",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    },
+    {
+      "project": "rocket-fixture",
+      "service": "web",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    }
+  ],
+  "jobs": [],
+  "conflicts": []
+}

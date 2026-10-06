@@ -1,0 +1,5 @@
+428
+{
+  "error": "confirmation required: deploying rocket-fixture to stage needs --yes",
+  "code": "confirmation_required"
+}

@@ -1,0 +1,40 @@
+[package]
+name = "rocket-daemon"
+description = "rocketd composition root: listeners, daemon.json, lock, signals, TTL ticker"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "rocketd"
+path = "src/main.rs"
+
+[dependencies]
+rocket-domain = { path = "../rocket-domain" }
+rocket-app = { path = "../rocket-app" }
+rocket-adapters = { path = "../rocket-adapters" }
+rocket-api = { path = "../rocket-api" }
+rocket-client = { path = "../rocket-client" }
+rocket-manifest = { path = "../rocket-manifest" }
+anyhow.workspace = true
+axum.workspace = true
+time = { workspace = true, features = ["local-offset"] }
+tokio.workspace = true
+tokio-util.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+nix.workspace = true
+
+[dev-dependencies]
+futures-util.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+bytes.workspace = true
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,5 @@
+404
+{
+  "error": "not found: job \"jdeadbeef00\"",
+  "code": "not_found"
+}

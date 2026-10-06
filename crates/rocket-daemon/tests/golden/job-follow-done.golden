@@ -1,0 +1,27 @@
+200
+: ok
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.771965Z","project":"rocket-fixture","line":"=== rocket: job j828280c0a6 (pipeline check, owner user) started at 2026-10-06T18:50:28Z ===","job_id":"j828280c0a6"}
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.772011Z","project":"rocket-fixture","line":"=== rocket: step 1/2: run echo step-one ===","job_id":"j828280c0a6"}
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.772018Z","project":"rocket-fixture","line":"step-one","job_id":"j828280c0a6"}
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.77202Z","project":"rocket-fixture","line":"=== rocket: step 2/2: run echo step-two greeting=$FIXTURE_GREETING ===","job_id":"j828280c0a6"}
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.772024Z","project":"rocket-fixture","line":"step-two greeting=hello","job_id":"j828280c0a6"}
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.772034Z","project":"rocket-fixture","job_id":"j828280c0a6"}
+
+event: job.log
+data: {"type":"job.log","time":"2026-10-06T18:50:28.77204Z","project":"rocket-fixture","line":"=== rocket: job j828280c0a6 succeeded ===","job_id":"j828280c0a6"}
+
+event: job.state
+data: {"type":"job.state","time":"2026-10-06T18:50:28.772059Z","project":"rocket-fixture","job_id":"j828280c0a6","status":"succeeded","job":{"id":"j828280c0a6","project":"rocket-fixture","name":"check","kind":"pipeline","env":"dev","owner":"user","steps":[{"run":"echo step-one"},{"run":"echo step-two greeting=$FIXTURE_GREETING"}],"status":"succeeded","step":2,"pid":57373,"pgid":57373,"exit_code":0,"started_at":"2026-10-06T18:50:28.760607Z","finished_at":"2026-10-06T18:50:28.770651Z","duration_ms":10,"log_path":"/private/tmp/rkg29j56nvn/home/logs/rocket-fixture/jobs/j828280c0a6.log"}}
+

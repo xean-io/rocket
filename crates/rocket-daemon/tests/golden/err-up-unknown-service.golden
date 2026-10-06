@@ -1,0 +1,5 @@
+400
+{
+  "error": "invalid request: unknown service or group \"nope\" in project rocket-fixture",
+  "code": "invalid"
+}

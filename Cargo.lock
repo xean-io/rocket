@@ -2531,6 +2531,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c7398b9c8b70908f6371f47ed36737907c87c52af34c268fed0bf0ceb92ead9"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "objc2"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3277,6 +3286,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "rocket-api"
+version = "0.1.1"
+dependencies = [
+ "axum",
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "percent-encoding",
+ "rocket-adapters",
+ "rocket-app",
+ "rocket-domain",
+ "rocket-manifest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tower",
+]
+
+[[package]]
 name = "rocket-app"
 version = "0.1.1"
 dependencies = [
@@ -3318,6 +3351,31 @@ dependencies = [
  "thiserror 2.0.21",
  "time",
  "tokio",
+]
+
+[[package]]
+name = "rocket-daemon"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "axum",
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "nix",
+ "rocket-adapters",
+ "rocket-api",
+ "rocket-app",
+ "rocket-client",
+ "rocket-domain",
+ "rocket-manifest",
+ "serde_json",
+ "tempfile",
+ "time",
+ "tokio",
+ "tokio-util",
 ]
 
 [[package]]
@@ -4462,7 +4520,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb87b95ec50ddfa440816d227a17b2ccbdda963a316a727fda0fc4334f7d134"
 dependencies = [
  "deranged",
+ "libc",
  "num-conv",
+ "num_threads",
  "powerfmt",
  "serde_core",
  "time-core",

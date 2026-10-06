@@ -1,0 +1,14 @@
+200
+{
+  "job": "j828280c0a6",
+  "project": "rocket-fixture",
+  "lines": [
+    "=== rocket: job j828280c0a6 (pipeline check, owner user) started at 2026-10-06T18:50:28Z ===",
+    "=== rocket: step 1/2: run echo step-one ===",
+    "step-one",
+    "=== rocket: step 2/2: run echo step-two greeting=$FIXTURE_GREETING ===",
+    "step-two greeting=hello",
+    "",
+    "=== rocket: job j828280c0a6 succeeded ==="
+  ]
+}

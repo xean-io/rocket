@@ -1,0 +1,34 @@
+[package]
+name = "rocket-api"
+description = "rocketd HTTP/SSE API server (axum) over the rocket application core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+rocket-domain = { path = "../rocket-domain" }
+rocket-app = { path = "../rocket-app" }
+rocket-adapters = { path = "../rocket-adapters" }
+axum.workspace = true
+bytes.workspace = true
+futures-util.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+time.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+percent-encoding.workspace = true
+
+[dev-dependencies]
+bytes.workspace = true
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+rocket-manifest = { path = "../rocket-manifest" }
+tempfile.workspace = true
+tower = { workspace = true, features = ["util"] }
+
+[lints]
+workspace = true

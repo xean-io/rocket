@@ -1,0 +1,26 @@
+200
+{
+  "id": "jc061a4b850",
+  "project": "rocket-fixture",
+  "name": "echo-args",
+  "kind": "pipeline",
+  "env": "dev",
+  "owner": "user",
+  "steps": [
+    {
+      "run": "echo args:"
+    }
+  ],
+  "args": [
+    "<&>\u2028x"
+  ],
+  "status": "succeeded",
+  "step": 1,
+  "pid": 57376,
+  "pgid": 57376,
+  "exit_code": 0,
+  "started_at": "2026-10-06T18:50:28.781719Z",
+  "finished_at": "2026-10-06T18:50:28.785783Z",
+  "duration_ms": 4,
+  "log_path": "/private/tmp/rkg29j56nvn/home/logs/rocket-fixture/jobs/jc061a4b850.log"
+}

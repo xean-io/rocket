@@ -834,7 +834,7 @@ impl App {
 
     /// Cancels expired running jobs without acquiring any project gate and
     /// returns the ones that ended as `canceled: ttl expired`.
-    pub(crate) async fn expire_jobs_ttl(&self) -> Result<Vec<Job>> {
+    pub async fn expire_jobs_ttl(&self) -> Result<Vec<Job>> {
         let mut expired = Vec::new();
         for job in self.d().store.list_jobs("", 0)? {
             if job.status != JobStatus::Running || !job.expired(self.now()) {
