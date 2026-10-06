@@ -3286,6 +3286,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rocket-agentdocs"
+version = "0.1.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "rocket-api"
 version = "0.1.1"
 dependencies = [
@@ -3330,6 +3340,19 @@ name = "rocket-cli"
 version = "0.1.1"
 dependencies = [
  "clap",
+ "futures-util",
+ "rocket-agentdocs",
+ "rocket-app",
+ "rocket-client",
+ "rocket-daemon",
+ "rocket-domain",
+ "rocket-manifest",
+ "rocket-scaffold",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "time",
+ "tokio",
 ]
 
 [[package]]
@@ -3422,6 +3445,19 @@ version = "0.1.1"
 dependencies = [
  "rocket-domain",
  "saphyr-parser",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "rocket-scaffold"
+version = "0.1.1"
+dependencies = [
+ "rocket-adapters",
+ "rocket-domain",
+ "rocket-manifest",
  "serde",
  "serde_json",
  "tempfile",

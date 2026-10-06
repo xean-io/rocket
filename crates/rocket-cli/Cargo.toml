@@ -1,18 +1,37 @@
 [package]
 name = "rocket-cli"
-description = "rocket command line interface"
+description = "rocket command line interface (also the daemon via `rocket daemon run`)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[lib]
+name = "rocket_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "rocket"
 path = "src/main.rs"
 
 [dependencies]
+rocket-agentdocs = { path = "../rocket-agentdocs" }
+rocket-app = { path = "../rocket-app" }
+rocket-client = { path = "../rocket-client" }
+rocket-daemon = { path = "../rocket-daemon" }
+rocket-domain = { path = "../rocket-domain" }
+rocket-manifest = { path = "../rocket-manifest" }
+rocket-scaffold = { path = "../rocket-scaffold" }
 clap.workspace = true
+futures-util.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+time = { workspace = true, features = ["local-offset"] }
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [lints]
 workspace = true

@@ -1,0 +1,8 @@
+{
+  "name": "weird_name.v2",
+  "root": "<ROOT>",
+  "dotenv": [
+    ".env"
+  ],
+  "services": []
+}

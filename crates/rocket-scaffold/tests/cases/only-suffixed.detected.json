@@ -1,0 +1,60 @@
+{
+  "name": "only-suffixed",
+  "root": "<ROOT>",
+  "compose_files": [
+    "compose.prod.yaml",
+    "compose.staging.yml"
+  ],
+  "envs": [
+    {
+      "name": "dev",
+      "files": [
+        "compose.prod.yaml"
+      ]
+    },
+    {
+      "name": "staging",
+      "files": [
+        "compose.staging.yml"
+      ]
+    }
+  ],
+  "services": [
+    {
+      "name": "db",
+      "compose": "db",
+      "profiles": [
+        "data"
+      ],
+      "ports": [
+        {
+          "name": "p5432",
+          "default": 5432,
+          "target": 5432
+        },
+        {
+          "name": "p5433",
+          "default": 6000,
+          "env": "PGX",
+          "target": 5433
+        }
+      ]
+    },
+    {
+      "name": "web",
+      "compose": "web",
+      "ports": [
+        {
+          "name": "main",
+          "default": 8080,
+          "env": "WEB_PORT",
+          "target": 80
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "services only in compose.staging.yml (env staging, not added): cache",
+    "compose.prod.yaml and compose.staging.yml share the compose project name \"shop\"; rocket forces rocket-only-suffixed-<env> per env, so their volumes no longer collide"
+  ]
+}

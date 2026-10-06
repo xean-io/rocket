@@ -1,0 +1,4 @@
+version: '3'
+tasks:
+  dev: echo deep dev
+  deploy: echo

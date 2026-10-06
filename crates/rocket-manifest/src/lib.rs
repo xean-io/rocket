@@ -41,6 +41,7 @@ mod dotenv;
 mod gostd;
 mod node;
 mod schema;
+pub mod yaml;
 
 pub use dotenv::{EnvFiles, parse_dotenv};
 pub use schema::{schema, schema_value};

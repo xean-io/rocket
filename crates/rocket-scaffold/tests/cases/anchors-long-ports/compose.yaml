@@ -1,0 +1,17 @@
+x-common: &common
+  profiles: [base]
+  ports: ["7000:7000"]
+services:
+  a:
+    <<: *common
+  b:
+    <<: *common
+    ports:
+      - target: 80
+        published: "${B_PORT:-9090}"
+      - target: 81
+        published: 9091
+      - 8082:82
+      - "3000-3005:3000-3005"
+      - "127.0.0.1::5432"
+      - "${ODD-"

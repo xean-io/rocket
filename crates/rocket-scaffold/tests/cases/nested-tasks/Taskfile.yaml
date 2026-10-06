@@ -1,0 +1,20 @@
+version: '3'
+includes:
+  sub: ./sub
+  tmpl: "{{.X}}/Taskfile.yml"
+  hidden: {taskfile: ./sub/deep/Taskfile.yml, internal: true}
+  missing: ./nope.yml
+tasks:
+  default: echo hi
+  serve: echo serve
+  start: {cmds: [echo start], desc: "Start it"}
+  hidden:
+    internal: true
+    cmds: [echo]
+  test:unit: echo
+  release:notes: echo
+  doctor: echo
+  migrate: echo
+  web:dev: echo
+  app:dev: echo
+  dev-server: echo

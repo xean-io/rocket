@@ -1,0 +1,93 @@
+{
+  "name": "nested-tasks",
+  "root": "<ROOT>",
+  "taskfile": "Taskfile.yaml",
+  "services": [
+    {
+      "name": "app-dev",
+      "task": "app:dev"
+    },
+    {
+      "name": "serve",
+      "task": "serve"
+    },
+    {
+      "name": "start",
+      "task": "start"
+    },
+    {
+      "name": "sub-deep-dev",
+      "task": "sub:deep:dev"
+    },
+    {
+      "name": "sub-dev",
+      "task": "sub:dev"
+    },
+    {
+      "name": "web-dev",
+      "task": "web:dev"
+    }
+  ],
+  "setup": [
+    {
+      "name": "doctor",
+      "task": "doctor"
+    },
+    {
+      "name": "migrate",
+      "task": "migrate"
+    }
+  ],
+  "pipelines": [
+    "dev-server",
+    "sub:build",
+    "test:unit"
+  ],
+  "deploy_tasks": [
+    "release:notes",
+    "sub:deep:deploy"
+  ],
+  "tasks": [
+    {
+      "name": "app:dev"
+    },
+    {
+      "name": "dev-server"
+    },
+    {
+      "name": "doctor"
+    },
+    {
+      "name": "migrate"
+    },
+    {
+      "name": "release:notes"
+    },
+    {
+      "name": "serve"
+    },
+    {
+      "name": "start",
+      "desc": "Start it"
+    },
+    {
+      "name": "sub:build",
+      "desc": "Build it"
+    },
+    {
+      "name": "sub:deep:deploy"
+    },
+    {
+      "name": "sub:deep:dev"
+    },
+    {
+      "name": "sub:dev"
+    },
+    {
+      "name": "test:unit"
+    },
+    {
+      "name": "web:dev"
+    }
+  ]
+}
