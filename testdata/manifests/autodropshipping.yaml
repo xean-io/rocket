@@ -1,0 +1,19 @@
+version: 1
+name: autodropshipping
+dotenv: [.env]
+envs:
+  dev:  { compose: [compose.yaml], profiles: [deps] }
+  full: { compose: [compose.yaml, docker-compose.yaml], profiles: [deps, apps, trends] }
+  prod: { deploy: { task: "deploy:prod", confirm: true } }
+services:
+  db:            { compose: db, ports: { main: { default: 5432, env: DB_PORT } } }
+  cache:         { compose: redis, ports: { main: { default: 6380, env: REDIS_PORT } } }
+  control-plane: { run: "pnpm dev", cwd: apps/control-plane, depends_on: [db, cache],
+                   env: { NODE_ENV: development },
+                   ports: { http: { default: 3000, env: PORT } }, health: { http: /healthz } }
+  trends:        { task: "dev:trends", profiles: [trends], depends_on: [db] }
+groups:
+  deps: [db, cache]
+  all:  ["*"]
+pipelines:
+  test: [{ task: test }]

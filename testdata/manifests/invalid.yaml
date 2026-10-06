@@ -1,0 +1,9 @@
+version: 1
+name: broken
+services:
+  a: { run: "x", task: "y", depends_on: [ghost] }
+  b: { depends_on: [c] }
+  c: { run: "z", depends_on: [b], ports: { http: { default: 70000, env: "bad-name" } }, health: { port: nope } }
+groups:
+  g: [a, missing]
+  a: [b]

@@ -1,0 +1,18 @@
+{
+  "project": "nuvara",
+  "env": "dev",
+  "services": [
+    { "service": "api", "action": "already_running", "state": "running", "health": "healthy",
+      "pid": 8635, "ports": { "http": 3002 }, "owner": "user",
+      "log_path": "/Users/me/.rocket/logs/nuvara/api.log" },
+    { "service": "web", "action": "started", "state": "running", "health": "healthy",
+      "pid": 8714, "ports": { "http": 3100 }, "owner": "agent:claude-123",
+      "expires_at": "2026-10-05T00:44:10Z",
+      "remaps": [ { "name": "http", "from": 3000, "to": 3100, "env": "PORT",
+                    "holder": { "pid": 77, "command": "node", "cwd": "/Users/me/code/shop" },
+                    "reason": "in use by node (pid 77) in /Users/me/code/shop" } ],
+      "log_path": "/Users/me/.rocket/logs/nuvara/web.log" },
+    { "service": "causation", "action": "failed", "state": "failed", "health": "unhealthy",
+      "error": "port 3003 (http) for nuvara/causation is busy" }
+  ]
+}

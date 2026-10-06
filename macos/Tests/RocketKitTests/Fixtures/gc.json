@@ -1,0 +1,2 @@
+{ "actions": [ { "action": "released_lease", "project": "ghost", "service": "x", "port": 9999 },
+               { "action": "pruned", "project": "nuvara", "service": "web", "detail": "stopped" } ] }

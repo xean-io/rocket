@@ -1,0 +1,18 @@
+# Build output
+/bin/
+/dist/
+
+# Local agent tooling and verification artifacts
+/.atl/
+/.codex/
+/.verification/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc

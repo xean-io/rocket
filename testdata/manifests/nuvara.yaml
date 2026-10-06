@@ -1,0 +1,27 @@
+version: 1
+name: nuvara
+dotenv: [.env]
+setup:
+  doctor:  { task: doctor }
+  install: { task: install }
+  migrate: { task: "db:migrate" }
+envs:
+  dev:   { compose: [docker-compose.yml] }
+  smoke: { compose: [docker-compose.prod.yml], profiles: [release] }
+  stage: { deploy: { task: "release:trigger", confirm: true } }
+  prod:  { deploy: { task: "release:ci", confirm: true } }
+services:
+  postgres: { compose: postgres, profiles: [deps], ports: { main: { default: 5435, env: POSTGRES_PORT } } }
+  redis:    { compose: redis,    profiles: [deps], ports: { main: { default: 6379, env: REDIS_PORT } } }
+  api:      { run: "bun run dev", cwd: apps/api, depends_on: [postgres, redis],
+              ports: { http: { default: 3002, env: PORT } }, health: { http: /api/health/live, timeout: 90s } }
+  web:      { run: "bun run dev", cwd: apps/web, depends_on: [api], ports: { http: { default: 3000, env: PORT } } }
+  causation: { task: "dev:causation", ports: { http: { default: 3003 } } }
+groups:
+  deps: [postgres, redis]
+  core: [api, web]
+  all:  ["*"]
+pipelines:
+  test:     [{ task: test }]
+  test:api: [{ task: "test:api" }]
+  ci:       [{ task: validate }, { task: lint }, { task: test }]

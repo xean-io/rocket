@@ -1,0 +1,5 @@
+{ "ports": [ { "port": 18431, "project": "rocket-fixture", "service": "static", "port_name": "http",
+               "created_at": "2026-10-05T00:14:10Z", "owner": "user", "state": "running",
+               "pid": 8635, "env": "dev" },
+             { "port": 3100, "project": "nuvara", "service": "web", "port_name": "http",
+               "created_at": "2026-10-05T00:14:10Z" } ] }

@@ -1,0 +1,33 @@
+version: '3'
+dotenv: ['.env']
+includes:
+  cp:
+    taskfile: ./apps/control-plane
+    dir: ./apps/control-plane
+  infra: ./infra/Taskfile.yml
+  secret:
+    taskfile: ./missing
+    internal: true
+tasks:
+  default:
+    cmds: [task --list]
+  install:
+    desc: Install dependencies
+    cmds: [pnpm install]
+  dev:
+    desc: Start the dev stack
+    cmds: [pnpm dev]
+  test:
+    desc: Run unit tests
+    cmds: [pnpm test]
+  lint: pnpm lint
+  db:migrate:
+    desc: Apply migrations
+    cmds: [pnpm db:migrate]
+  release:ci:
+    cmds: [gh workflow run release]
+  deploy:prod:
+    cmds: [./scripts/deploy.sh prod]
+  _helper:
+    internal: true
+    cmds: [echo hidden]

@@ -1,0 +1,2 @@
+{ "project": "rocket-fixture", "service": "sleeper",
+  "lines": ["=== rocket: starting sleeper (run, env dev, owner user) at 2026-10-05T00:14:11Z ===", "greeting=hello"] }

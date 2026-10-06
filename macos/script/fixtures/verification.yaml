@@ -1,0 +1,21 @@
+version: 1
+name: rocket-verify
+default_env: dev
+envs:
+  dev: {}
+  smoke: {}
+  stage:
+    deploy: {run: "printf 'harmless stage deployment\\n'", confirm: true}
+services:
+  preview:
+    run: "exec python3 -m http.server $PORT --bind 127.0.0.1"
+    ports:
+      http: {default: 18771, env: PORT}
+    health: {http: /, timeout: 15s}
+groups:
+  all: ["*"]
+pipelines:
+  check: [{run: "printf 'harmless check\\n'"}]
+  slow-check: [{run: "printf 'harmless slow check\\n'; sleep 2; printf 'complete\\n'"}]
+setup:
+  doctor: {run: "printf 'harmless doctor\\n'"}

@@ -1,0 +1,2 @@
+{ "stopped": [ { "project": "rocket-fixture", "service": "static", "env": "dev", "kind": "run", "state": "stopped", "health": "unknown" } ],
+  "compose_down": ["rocket-nuvara-dev"], "errors": [] }

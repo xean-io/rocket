@@ -1,0 +1,4 @@
+version: 1
+name: typo
+services:
+  a: { run: "x", dependson: [b] }

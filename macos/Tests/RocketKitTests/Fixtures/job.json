@@ -1,0 +1,4 @@
+{ "id": "j-01", "project": "jobs", "name": "ci", "kind": "pipeline", "owner": "user",
+  "steps": [ { "run": "step-lint" }, { "task": "e2e" } ], "status": "failed", "step": 2,
+  "pid": 900, "exit_code": 1, "started_at": "2026-10-05T00:14:10.123Z",
+  "finished_at": "2026-10-05T00:15:10Z", "duration_ms": 60000, "error": "step 2 failed" }

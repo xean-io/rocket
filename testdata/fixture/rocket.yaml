@@ -1,0 +1,38 @@
+# Fixture project for rocket integration tests and manual smoke runs.
+version: 1
+name: rocket-fixture
+dotenv: [.env]
+services:
+  static:
+    run: "exec python3 -m http.server $PORT --bind 127.0.0.1"
+    ports: { http: { default: 18431, env: PORT } }
+    health: { http: /, timeout: 20s }
+  web:
+    run: "exec python3 -m http.server $WEB_PORT --bind 127.0.0.1"
+    depends_on: [static]
+    ports: { http: { default: 18432, env: WEB_PORT } }
+  sleeper:
+    run: "echo greeting=$FIXTURE_GREETING; exec sleep 600"
+    depends_on: [static]
+  fixed:
+    run: "exec python3 -m http.server 18433 --bind 127.0.0.1"
+    ports: { http: { default: 18433 } }
+groups:
+  core: [static, web]
+  all: ["*"]
+envs:
+  dev: {}
+  stage: { deploy: { run: "echo deploying greeting=$FIXTURE_GREETING", confirm: true } }
+setup:
+  doctor: { run: "echo doctor-ok" }
+  install: { run: "echo install-ok greeting=$FIXTURE_GREETING" }
+pipelines:
+  check:
+    - run: "echo step-one"
+    - run: "echo step-two greeting=$FIXTURE_GREETING"
+  broken:
+    - run: "echo before-fail"
+    - run: "echo failing; exit 3"
+    - run: "echo never-runs"
+  echo-args: [{ run: "echo args:" }]
+  slow: [{ run: "echo slow-start; exec sleep 600" }]

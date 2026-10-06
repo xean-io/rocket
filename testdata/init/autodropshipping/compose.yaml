@@ -1,0 +1,25 @@
+# Dev infrastructure (shaped like autodropshipping; fixture data only).
+name: xean-spectrai
+services:
+  postgres:
+    image: postgres:16
+    profiles: [deps]
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+  redis:
+    image: redis:7
+    profiles: [deps]
+    ports:
+      - "6379:6379"
+  minio:
+    image: minio/minio
+    profiles: [ops]
+    ports:
+      - target: 9000
+        published: "${MINIO_PORT:-9000}"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001/tcp"
+  worker:
+    build: .
+    profiles: [apps]
+    ports:
+      - "8080"
