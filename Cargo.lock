@@ -3277,6 +3277,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "rocket-app"
+version = "0.1.1"
+dependencies = [
+ "rocket-domain",
+ "rocket-manifest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
+ "time",
+ "tokio",
+ "tokio-util",
+ "uuid",
+]
+
+[[package]]
 name = "rocket-cli"
 version = "0.1.1"
 dependencies = [
@@ -4522,6 +4538,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
+ "futures-util",
  "pin-project-lite",
  "tokio",
 ]

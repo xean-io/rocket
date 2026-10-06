@@ -264,9 +264,7 @@ impl ports::Store for Store {
         if let Some((project, service)) = holder
             && (project != l.project || service != l.service)
         {
-            // Go wraps the sentinel with "port N held by project/service";
-            // the Rust sentinel carries no payload.
-            return Err(Error::LeaseTaken);
+            return Err(Error::lease_taken(l.port, &project, &service));
         }
         tx.execute(
             "INSERT INTO leases(port, project, service, port_name, created_at) VALUES(?,?,?,?,?)

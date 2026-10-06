@@ -27,9 +27,11 @@ pub enum Error {
     /// Go's `ErrUnsupported`: the adapter is not implemented on this platform.
     #[error("not supported on this platform")]
     Unsupported,
-    /// Go's `ErrLeaseTaken`: a port is leased by another service.
-    #[error("port already leased")]
-    LeaseTaken,
+    /// Go's `ErrLeaseTaken`: a port is leased by another service. The payload
+    /// is the human-readable detail Go wraps around the sentinel
+    /// (`port 3000 held by project/service`).
+    #[error("port already leased: {0}")]
+    LeaseTaken(String),
     /// Any other failure, with its message preserved.
     #[error("{0}")]
     Other(Box<dyn std::error::Error + Send + Sync>),
@@ -39,6 +41,11 @@ impl Error {
     /// An [`Error::Other`] carrying only a message.
     pub fn msg(message: impl Into<String>) -> Self {
         Self::Other(message.into().into())
+    }
+
+    /// An [`Error::LeaseTaken`] naming the current holder.
+    pub fn lease_taken(port: u16, project: &str, service: &str) -> Self {
+        Self::LeaseTaken(format!("port {port} held by {project}/{service}"))
     }
 
     /// Wraps any error as [`Error::Other`].

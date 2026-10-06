@@ -17,7 +17,10 @@ fn sentinel_errors_are_typed_and_worded_like_go() {
         Error::Unsupported.to_string(),
         "not supported on this platform"
     );
-    assert_eq!(Error::LeaseTaken.to_string(), "port already leased");
+    assert_eq!(
+        Error::lease_taken(3000, "a", "web").to_string(),
+        "port already leased: port 3000 held by a/web"
+    );
     assert!(matches!(Error::msg("boom"), Error::Other(_)));
     assert_eq!(Error::msg("boom").to_string(), "boom");
     let io = std::io::Error::other("disk");

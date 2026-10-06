@@ -111,7 +111,11 @@ fn lease_conflicts() {
     let err = s
         .acquire_lease(&lease(3000, "b", "web", "http", now))
         .unwrap_err();
-    assert!(matches!(err, Error::LeaseTaken), "err {err}");
+    assert!(matches!(err, Error::LeaseTaken(_)), "err {err}");
+    assert_eq!(
+        err.to_string(),
+        "port already leased: port 3000 held by a/web"
+    );
     let released = s.release_leases("a", "web").unwrap();
     assert_eq!(released.len(), 1);
     assert_eq!(released[0].port, 3000);

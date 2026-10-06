@@ -203,6 +203,15 @@ pub struct UpResult {
 }
 
 /// `POST /v1/down`.
+impl UpResult {
+    /// Whether any service failed or was skipped (Go: `UpResult.Failed`).
+    pub fn failed(&self) -> bool {
+        self.services
+            .iter()
+            .any(|s| s.action == service_action::FAILED || s.action == service_action::SKIPPED)
+    }
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[serde(deny_unknown_fields)]
