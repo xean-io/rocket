@@ -47,9 +47,19 @@ func setup(t *testing.T) *env {
 		t.Fatal(err)
 	}
 	bin := filepath.Join(home, "rocket")
-	build := exec.Command("go", "build", "-o", bin, ".")
-	if out, err := build.CombinedOutput(); err != nil {
-		t.Fatalf("build: %v\n%s", err, out)
+	if prebuilt := os.Getenv("ROCKET_BIN"); prebuilt != "" {
+		// Parity runs point the suite at another implementation's binary.
+		if !filepath.IsAbs(prebuilt) {
+			t.Fatalf("ROCKET_BIN must be an absolute path, got %q", prebuilt)
+		}
+		if err := copyExecutable(prebuilt, bin); err != nil {
+			t.Fatalf("copy ROCKET_BIN: %v", err)
+		}
+	} else {
+		build := exec.Command("go", "build", "-o", bin, ".")
+		if out, err := build.CombinedOutput(); err != nil {
+			t.Fatalf("build: %v\n%s", err, out)
+		}
 	}
 	project := filepath.Join(home, "fixture")
 	if err := os.MkdirAll(project, 0o755); err != nil {
@@ -102,6 +112,16 @@ func (e *env) rocketAt(dir string, extraEnv []string, args ...string) (string, i
 		e.t.Logf("rocket %v stderr: %s", args, stderr.String())
 	}
 	return stdout.String(), code
+}
+
+// copyExecutable copies src to dst with the executable bit set. ROCKET_BIN is
+// read by the test process only: filterEnv strips ROCKET_* from child envs.
+func copyExecutable(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, data, 0o755)
 }
 
 func filterEnv(in []string) []string {

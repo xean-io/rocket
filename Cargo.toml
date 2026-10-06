@@ -1,0 +1,43 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.1"
+edition = "2024"
+rust-version = "1.97"
+license = "MIT"
+repository = "https://github.com/xean-io/rocket"
+
+[workspace.lints.rust]
+# Process supervision needs a few `unsafe` blocks (e.g. pre_exec); crates that
+# need them opt in locally with a justified `#[allow(unsafe_code)]`.
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+# Version catalog: members reference these with `dep.workspace = true`.
+# `time` over `chrono`: smaller, no timezone database or local-clock footguns,
+# and `time::serde::rfc3339` matches Go's RFC3339Nano JSON encoding.
+# No YAML crate is listed on purpose; task R2 picks one.
+[workspace.dependencies]
+anyhow = "1.0.104"
+async-trait = "0.1.92"
+axum = "0.8.9"
+clap = { version = "4.6.7", features = ["derive"] }
+hyper = { version = "1.11.1", features = ["http1", "server", "client"] }
+hyper-util = { version = "0.1.21", features = ["tokio", "server", "client-legacy", "http1"] }
+nix = { version = "0.31.3", features = ["signal", "process", "fs"] }
+rand = "0.10.3"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+time = { version = "0.3.55", features = ["serde-well-known", "macros"] }
+tokio = { version = "1.53.2", features = ["full"] }
+tower = "0.5.3"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+uuid = { version = "1.27.0", features = ["v4"] }
