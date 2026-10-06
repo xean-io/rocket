@@ -45,9 +45,9 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ### Phase R — Rust core
 
-- [ ] R0 Workspace skeleton (`Cargo.toml`, `crates/`), CI job (fmt, clippy,
+- [x] R0 Workspace skeleton (`Cargo.toml`, `crates/`), CI job (fmt, clippy,
   test), `ROCKET_BIN` override in Go e2e harness.
-- [ ] R1 `rocket-domain` + ports traits (port `internal/domain`, `internal/ports`).
+- [x] R1 `rocket-domain` + ports traits (port `internal/domain`, `internal/ports`).
 - [ ] R2 `rocket-manifest` (strict YAML, dotenv, JSON Schema) with
   `testdata/manifests` golden tests.
 - [ ] R3 Adapters: paths, sqlite (rusqlite, WAL, compatible JSON), events bus,
@@ -78,12 +78,19 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 | Task | Route | Trigger evidence | Commit | Review |
 |---|---|---|---|---|
+| R0 | delegated (Sonnet) | 6 files, CI + harness | 5af21ff | RDD off |
+| R1 | delegated (Sonnet) | ~800 Go lines → crate + tests | 89d2434 | RDD off |
 
 ## Progress
 
+- 2026-10-06: R0+R1 done: workspace (tokio, axum, rusqlite bundled, nix,
+  time, async-trait for dyn ports), domain crate with Go-JSON byte-compat
+  tests (36 tests green); Go e2e passes with ROCKET_BIN override.
 - 2026-10-06: Explorer mapped Go (~8.3k src lines) and Swift app (~4.1k src).
   Branch `feat/rust-tauri-port` created.
 
 ## Next step
 
-Pick chain strategy, then start R0.
+Execution order: R8a (`rocket-client` crate only) → T0–T5 against the
+current Go daemon (same contract) → R2–R7, R8b (CLI), R9 → R10 parity → R11,
+R12, T6. Next: R8a.
