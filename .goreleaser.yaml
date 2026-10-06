@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: rocket
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: rocket
+    main: ./cmd/rocket
+    binary: rocket
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: rocket
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: xean-io
+    name: rocket
+
+homebrew_casks:
+  - name: rocket
+    repository:
+      owner: xean-io
+      name: homebrew-tap
+      token: '{{ envOrDefault "TAP_GITHUB_TOKEN" "" }}'
+    directory: Casks
+    homepage: https://github.com/xean-io/rocket
+    description: Supervise dev processes for humans and AI agents
+    license: MIT
+    # Skip the tap push when no token is configured; the release itself still ships.
+    skip_upload: '{{ if eq (envOrDefault "TAP_GITHUB_TOKEN" "") "" }}true{{ end }}'
+    hooks:
+      post:
+        # Binaries are not notarized; drop the quarantine bit so macOS runs them.
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/rocket"]
+          end
