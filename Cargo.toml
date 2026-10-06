@@ -20,7 +20,7 @@ all = { level = "warn", priority = -1 }
 # Version catalog: members reference these with `dep.workspace = true`.
 # `time` over `chrono`: smaller, no timezone database or local-clock footguns,
 # and `time::serde::rfc3339` matches Go's RFC3339Nano JSON encoding.
-# No YAML crate is listed on purpose; task R2 picks one.
+# YAML: saphyr-parser (event-level parser) feeds rocket-manifest; see its crate docs.
 [workspace.dependencies]
 anyhow = "1.0.104"
 async-trait = "0.1.92"
@@ -32,6 +32,7 @@ nix = { version = "0.31.3", features = ["signal", "process", "fs"] }
 rand = "0.10.3"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 serde = { version = "1.0.229", features = ["derive"] }
+saphyr-parser = "0.1.0"
 serde_json = "1.0.151"
 tempfile = "3.27.0"
 thiserror = "2.0.21"

@@ -1,0 +1,21 @@
+[package]
+name = "rocket-manifest"
+description = "rocket.yaml discovery, strict parsing, validation, dotenv and JSON Schema"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+rocket-domain = { path = "../rocket-domain" }
+saphyr-parser.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

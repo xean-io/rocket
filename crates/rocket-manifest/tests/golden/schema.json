@@ -1,0 +1,327 @@
+{
+  "$defs": {
+    "env": {
+      "additionalProperties": false,
+      "properties": {
+        "compose": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "deploy": {
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "task"
+              ]
+            },
+            {
+              "required": [
+                "run"
+              ]
+            }
+          ],
+          "properties": {
+            "confirm": {
+              "description": "require --yes",
+              "type": "boolean"
+            },
+            "run": {
+              "description": "shell command that deploys",
+              "type": "string"
+            },
+            "task": {
+              "description": "go-task task that deploys",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "profiles": {
+          "description": "enabled startup profiles and Compose profiles for this environment",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "health": {
+      "additionalProperties": false,
+      "properties": {
+        "http": {
+          "description": "HTTP path probed on the health port",
+          "pattern": "^/",
+          "type": "string"
+        },
+        "port": {
+          "description": "port name with probe enabled; defaults to the first eligible port",
+          "type": "string"
+        },
+        "tcp": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Go duration, e.g. 60s",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "port": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "env": {
+          "description": "variable name or variable-to-template bindings; an unconditional binding permits remapping",
+          "oneOf": [
+            {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "description": "template containing {port}, replaced by the resolved port",
+                    "pattern": "\\{port\\}",
+                    "type": "string"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "description": "inject only when the inherited/dotenv/service value is empty",
+                    "properties": {
+                      "default": {
+                        "description": "template containing {port}, replaced by the resolved port",
+                        "pattern": "\\{port\\}",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "default"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "probe": {
+          "default": true,
+          "description": "use this port for Rocket readiness; false still leases and remaps it",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "default"
+      ],
+      "type": "object"
+    },
+    "service": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "compose"
+          ]
+        },
+        {
+          "required": [
+            "task"
+          ]
+        },
+        {
+          "required": [
+            "run"
+          ]
+        }
+      ],
+      "properties": {
+        "compose": {
+          "description": "service name in the env's compose files",
+          "type": "string"
+        },
+        "cwd": {
+          "description": "working dir relative to project root",
+          "type": "string"
+        },
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dotenv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          "description": "service environment; {service.port} tokens resolve live provider ports and add startup dependencies",
+          "type": "object"
+        },
+        "health": {
+          "$ref": "#/$defs/health"
+        },
+        "ports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/port"
+          },
+          "type": "object"
+        },
+        "profiles": {
+          "description": "gates startup wildcard selection; explicit members and required dependencies remain selectable",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "run": {
+          "description": "raw shell command",
+          "type": "string"
+        },
+        "task": {
+          "description": "long-running go-task task",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "step": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "task"
+          ]
+        },
+        {
+          "required": [
+            "run"
+          ]
+        }
+      ],
+      "properties": {
+        "run": {
+          "description": "shell command",
+          "type": "string"
+        },
+        "task": {
+          "description": "go-task task name",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/xean-io/rocket/rocket.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "default_env": {
+      "type": "string"
+    },
+    "dotenv": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "envs": {
+      "additionalProperties": {
+        "$ref": "#/$defs/env"
+      },
+      "type": "object"
+    },
+    "groups": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "type": "object"
+    },
+    "name": {
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "type": "string"
+    },
+    "pipelines": {
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "items": {
+              "$ref": "#/$defs/step"
+            },
+            "type": "array"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "needs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "steps": {
+                "items": {
+                  "$ref": "#/$defs/step"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "steps"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "type": "object"
+    },
+    "services": {
+      "additionalProperties": {
+        "$ref": "#/$defs/service"
+      },
+      "minProperties": 1,
+      "type": "object"
+    },
+    "setup": {
+      "additionalProperties": {
+        "$ref": "#/$defs/step"
+      },
+      "type": "object"
+    },
+    "version": {
+      "const": 1
+    }
+  },
+  "required": [
+    "version",
+    "services"
+  ],
+  "title": "rocket.yaml",
+  "type": "object"
+}
