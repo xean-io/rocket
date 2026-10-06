@@ -33,6 +33,39 @@ Prebuilt archives for macOS and Linux (amd64/arm64) are on the
 [releases page](https://github.com/xean-io/rocket/releases). Windows is not
 shipped yet.
 
+## Desktop app
+
+Rocket.app (Tauri + React, in `apps/desktop`) is a window, menu bar item and
+native menu over the same daemon API as the CLI. It bundles the `rocket` CLI as
+a sidecar, so it works on its own; an installed `rocket` on `PATH` (or
+`$ROCKET_BIN`) takes priority and the bundled one is the last fallback, so the
+CLI and the app share one daemon.
+
+```sh
+# Homebrew (macOS, universal)
+brew tap xean-io/rocket https://github.com/xean-io/rocket
+brew install --cask xean-io/rocket/rocket-app
+```
+
+Or download `Rocket_<version>_universal.dmg` from the
+[releases page](https://github.com/xean-io/rocket/releases) and drag Rocket to
+Applications. The app is ad-hoc signed, not notarized: the cask clears the
+quarantine flag; after a manual dmg install run
+`xattr -dr com.apple.quarantine /Applications/Rocket.app` (or right-click >
+Open). `rocket app` opens it from the terminal.
+
+Build from source (Rust, Node 24, pnpm 10):
+
+```sh
+cd apps/desktop
+pnpm install --frozen-lockfile
+pnpm tauri dev                          # hot-reloading dev app
+pnpm tauri build --bundles app,dmg      # target/release/bundle/{macos,dmg}
+```
+
+`pnpm tauri build` first runs `scripts/prepare-sidecar.mjs`, which compiles
+`rocket-cli` and places it in `src-tauri/binaries/` for Tauri's `externalBin`.
+
 ### Building and testing
 
 ```sh
@@ -41,16 +74,16 @@ cargo test --workspace                        # unit tests: hermetic, no daemon 
 cargo test -p rocket-cli --features e2e       # end-to-end: real daemon and processes (needs python3)
 ```
 
-A desktop app (Tauri + React) lives in `apps/desktop`; see its `package.json`
-for `pnpm dev`, `pnpm test` and `pnpm tauri build`. It talks to the same daemon
-API as the CLI.
+The desktop app is covered in [Desktop app](#desktop-app) below.
 
 ### Releasing
 
 Push a `vX.Y.Z` tag; the `release` workflow builds the Rust binary for macOS and
 Linux with cargo-zigbuild, runs GoReleaser, publishes the GitHub release and
 commits the updated cask to `Casks/rocket.rb` on `main` (this repo is its own
-Homebrew tap). Dry run locally (needs rustup, zig and cargo-zigbuild) with
+Homebrew tap). The same workflow then builds the universal desktop dmg, uploads
+it to the release as `Rocket_<version>_universal.dmg` and commits
+`Casks/rocket-app.rb`. Dry run locally (needs rustup, zig and cargo-zigbuild) with
 `goreleaser release --snapshot --clean --skip=publish`.
 
 State lives in `~/.rocket` (override with `ROCKET_HOME`).
@@ -187,7 +220,7 @@ Every command accepts `--json` and `-p <project name|path>` (default: the
 | `rocket projects add\|ls\|rm` | global project registry |
 | `rocket daemon start\|stop\|status\|run` | manage `rocketd` |
 | `rocket agent install [--target claude\|agents\|both] [--global] [--print]` | teach AI agents to use rocket |
-| `rocket app` | open Rocket.app (macOS) |
+| `rocket app` | open Rocket.app (macOS, `$ROCKET_APP` overrides the app name or path) |
 | `rocket schema` | JSON Schema of `rocket.yaml` |
 
 All job commands accept a positive Go duration in `--ttl`. The deadline starts
@@ -261,5 +294,5 @@ boundary.
 ## Platforms
 
 macOS and Linux are supported. Windows builds, but process supervision is not
-implemented yet (the process adapter returns "unsupported"). The native macOS
-app lives in `macos/` (in progress).
+implemented yet (the process adapter returns "unsupported"). The desktop app
+is built and released for macOS.

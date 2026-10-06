@@ -24,12 +24,13 @@ fn script(dir: &Path, name: &str, body: &str) -> PathBuf {
 }
 
 #[test]
-fn candidate_order_matches_the_swift_launcher() {
+fn candidate_order_prefers_installed_binaries_over_the_bundled_one() {
     let c = candidate_rocket_bins(
         Some(Path::new("/info/rocket")),
         Some(OsStr::new("/env/rocket-bin")),
         Some(OsStr::new("/p1:/p2")),
         Some(Path::new("/Users/me")),
+        Some(Path::new("/App/Rocket.app/Contents/MacOS/rocket")),
     );
     let want: Vec<&str> = vec![
         "/info/rocket",
@@ -41,14 +42,44 @@ fn candidate_order_matches_the_swift_launcher() {
         "/Users/me/go/bin/rocket",
         "/Users/me/.local/bin/rocket",
         "/Users/me/bin/rocket",
+        // The bundled sidecar is the last resort: an installed CLI wins.
+        "/App/Rocket.app/Contents/MacOS/rocket",
     ];
     assert_eq!(
         c.iter().map(|p| p.to_str().unwrap()).collect::<Vec<_>>(),
         want
     );
     // Missing pieces are skipped, not replaced.
-    let c = candidate_rocket_bins(None, None, None, None);
+    let c = candidate_rocket_bins(None, None, None, None, None);
     assert_eq!(c.len(), 2);
+}
+
+#[test]
+fn bundled_sidecar_is_used_only_when_nothing_else_is_executable() {
+    let tmp = short_tmp();
+    let bundled = script(tmp.path(), "sidecar", "exit 0");
+    let c = candidate_rocket_bins(
+        None,
+        None,
+        Some(OsStr::new("/nonexistent")),
+        None,
+        Some(&bundled),
+    );
+    // Last in the order, whatever else this machine has installed.
+    assert_eq!(c.last(), Some(&bundled));
+    // Skipped like any other candidate while missing, used once it is the
+    // only executable one.
+    assert_eq!(
+        find_rocket_bin_in(&[PathBuf::from("/definitely/not/here"), bundled.clone()]),
+        Some(bundled.clone())
+    );
+
+    let installed_dir = tmp.path().join("installed");
+    std::fs::create_dir_all(&installed_dir).unwrap();
+    let installed = script(&installed_dir, "rocket", "exit 0");
+    let path = std::env::join_paths([&installed_dir]).unwrap();
+    let c = candidate_rocket_bins(None, None, Some(path.as_os_str()), None, Some(&bundled));
+    assert_eq!(find_rocket_bin_in(&c), Some(installed));
 }
 
 #[test]
@@ -62,13 +93,14 @@ fn first_executable_candidate_wins_and_non_executables_are_skipped() {
     std::fs::write(&not_exec, "x").unwrap();
     let exec = script(&b, "rocket", "exit 0");
     let path = std::env::join_paths([&a, &b]).unwrap();
-    let c = candidate_rocket_bins(None, None, Some(path.as_os_str()), None);
+    let c = candidate_rocket_bins(None, None, Some(path.as_os_str()), None, None);
     assert_eq!(find_rocket_bin_in(&c), Some(exec.clone()));
     // daemon.json's rocket_bin outranks PATH when it is executable.
     let c = candidate_rocket_bins(
         Some(exec.as_path()),
         None,
         Some(OsStr::new("/nonexistent")),
+        None,
         None,
     );
     assert_eq!(find_rocket_bin_in(&c), Some(exec));
@@ -183,7 +215,7 @@ async fn daemon_that_never_answers_times_out() {
 }
 
 #[tokio::test]
-async fn missing_binary_is_reported() {
+async fn not_bundled_binary_is_reported() {
     let tmp = short_tmp();
     let paths = Paths::from_home(tmp.path()).unwrap();
     let mut opts = EnsureOptions::new(paths);

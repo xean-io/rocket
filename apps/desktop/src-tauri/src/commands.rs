@@ -1,12 +1,12 @@
 //! Thin, typed Tauri commands over the daemon API. Every command resolves
 //! the current client, forwards one call and maps errors to [`CommandError`].
-//! Actions started from the app are owned by `user`, like the SwiftUI app.
+//! Actions started from the app are owned by `user`, as in the original macOS app.
 
 use crate::dto::{ConnectionStatus, DaemonDetails, FollowMessage};
 use crate::error::CommandError;
 use crate::follow;
 use crate::state::AppState;
-use rocket_client::{DaemonInfo, EnsureOptions, JobsQuery, ensure_daemon, find_rocket_bin};
+use rocket_client::{DaemonInfo, JobsQuery, ensure_daemon, find_rocket_bin_with};
 use rocket_domain::api::{
     DownRequest, DownResult, GcResult, HealthInfo, JobLogsResult, JobRequest, JobsResult,
     LogsResult, PortsResult, ProjectsResult, RemovedProject, StatusResult, Summary, UpRequest,
@@ -194,7 +194,11 @@ async fn details(state: &AppState) -> DaemonDetails {
         logs: s(&p.logs),
         daemon_log: s(&p.daemon_log),
         daemon_json: s(&p.daemon_json),
-        rocket_bin: find_rocket_bin(info.as_ref()).map(|b| b.display().to_string()),
+        rocket_bin: find_rocket_bin_with(
+            info.as_ref(),
+            crate::state::bundled_rocket_bin().as_deref(),
+        )
+        .map(|b| b.display().to_string()),
         health,
         warnings: config_warnings(&p.daemon_json),
     }
@@ -220,7 +224,7 @@ pub async fn restart_daemon(state: State<'_, AppState>) -> CmdResult<DaemonDetai
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
         }
-        let fresh = ensure_daemon(&EnsureOptions::new(state.paths.clone())).await?;
+        let fresh = ensure_daemon(&state.ensure_options()).await?;
         state.set_client(fresh).await;
     }
     state.reconnect.notify_one();

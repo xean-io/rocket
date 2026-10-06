@@ -1,4 +1,4 @@
-// Port map helpers (port of PortsView.swift).
+// Port map helpers.
 import type { Conflict, PortInfo } from "./bindings";
 
 export const isRemap = (c: Conflict) => c.kind === "port_remapped";

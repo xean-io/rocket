@@ -1,4 +1,4 @@
-//! Native application menu (port of `RocketCommands.swift`).
+//! Native application menu (accelerators follow the original macOS app's command set).
 //!
 //! Custom items carry a stable action id (`services.up`, `view.ports`, ...).
 //! Choosing one emits [`EVENT`] with that id as payload; the frontend routes it
@@ -229,7 +229,7 @@ mod tests {
     }
 
     #[test]
-    fn accelerators_mirror_the_swift_commands() {
+    fn accelerators_mirror_the_original_commands() {
         assert_eq!(MenuAction::Up.accelerator(), Some("CmdOrCtrl+Shift+U"));
         assert_eq!(MenuAction::Restart.accelerator(), Some("CmdOrCtrl+R"));
         assert_eq!(MenuAction::Stop.accelerator(), Some("CmdOrCtrl+."));

@@ -1,4 +1,4 @@
-// Stale-snapshot protection (port of the Swift `jobsRevision` idea): events
+// Stale-snapshot protection (a `jobsRevision` guard): events
 // patch cached snapshots in place and advance a per-key revision. A snapshot
 // request remembers the revision it started under; if an event landed while it
 // was in flight, the response is older than the cache and must not overwrite it.

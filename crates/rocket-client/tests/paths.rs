@@ -73,7 +73,7 @@ fn ensure_creates_private_dirs() {
 const DAEMON_JSON: &str = r#"{"version":"0.1.0-dev","api":"v1","pid":4242,"socket":"/Users/me/.rocket/rocketd.sock","http":"http://127.0.0.1:52817","token":"s3cr3t","rocket_bin":"/usr/local/bin/rocket","started_at":"2026-10-05T00:14:10.938611Z"}"#;
 
 #[test]
-fn daemon_info_parses_swift_fixture() {
+fn daemon_info_parses_recorded_fixture() {
     let i = DaemonInfo::parse(DAEMON_JSON.as_bytes()).unwrap();
     assert_eq!(i.version, "0.1.0-dev");
     assert_eq!(i.api, "v1");
@@ -93,7 +93,7 @@ fn daemon_info_parses_swift_fixture() {
 }
 
 #[test]
-fn daemon_info_is_lenient_like_the_swift_loader() {
+fn daemon_info_is_lenient_like_the_original_loader() {
     let i =
         DaemonInfo::parse(br#"{"http":"http://127.0.0.1:1","token":"t","extra":true}"#).unwrap();
     assert_eq!(i.token, "t");

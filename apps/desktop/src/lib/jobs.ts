@@ -1,4 +1,4 @@
-// Job helpers (port of the jobs logic in RocketStore.swift / Job.swift).
+// Job helpers.
 import type { QueryClient } from "@tanstack/react-query";
 import type { Job, JobRequest, JobsResult, JobStatus } from "./bindings";
 import { queryKeys } from "./cache";
@@ -40,7 +40,7 @@ export function mergeJobs(current: readonly Job[], incoming: readonly Job[]): Jo
 /**
  * Runs the jobs fetcher. When an event patched the cache meanwhile the response
  * is older than the cache and is dropped; otherwise it is merged so a finished
- * job is never shown as running again (Swift `jobsRevision` + terminal rule).
+ * job is never shown as running again (`jobsRevision` + terminal rule).
  */
 export async function fetchJobsGuarded(
   qc: QueryClient,
@@ -57,7 +57,7 @@ const nonEmpty = <T>(list: T[] | undefined): T[] | undefined => (list && list.le
 
 /**
  * The request that starts `job` again, preserving env, profiles and args
- * (Swift `JobRequest(rerunning:)`). Deploys target their env and carry no
+ * (rerun requests). Deploys target their env and carry no
  * profiles; they still need the human's explicit yes (see `deploy.ts`).
  */
 export function rerunRequest(job: Job): JobRequest {

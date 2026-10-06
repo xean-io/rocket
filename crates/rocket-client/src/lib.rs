@@ -23,6 +23,7 @@ mod transport;
 
 pub use bootstrap::{
     EnsureOptions, candidate_rocket_bins, ensure_daemon, find_rocket_bin, find_rocket_bin_in,
+    find_rocket_bin_with,
 };
 pub use client::{Client, EventFilter, JobsQuery, TransportKind};
 pub use daemon_info::DaemonInfo;

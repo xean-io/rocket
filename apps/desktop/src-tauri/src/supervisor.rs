@@ -4,7 +4,7 @@ use crate::backoff::Backoff;
 use crate::dto::ConnectionStatus;
 use crate::state::AppState;
 use futures_util::StreamExt;
-use rocket_client::{ClientError, EnsureOptions, EventFilter, ensure_daemon};
+use rocket_client::{ClientError, EventFilter, ensure_daemon};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 
@@ -54,7 +54,7 @@ pub async fn run(app: AppHandle) {
 async fn session(app: &AppHandle, state: &AppState, backoff: &mut Backoff) -> Result<(), String> {
     let client = {
         let _launch = state.ensure_lock.lock().await;
-        ensure_daemon(&EnsureOptions::new(state.paths.clone()))
+        ensure_daemon(&state.ensure_options())
             .await
             .map_err(|e| e.to_string())?
     };

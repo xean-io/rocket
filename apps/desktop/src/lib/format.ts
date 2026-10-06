@@ -1,4 +1,4 @@
-// Display formatting (port of Support/StatusStyle.swift `Format`).
+// Display formatting.
 
 export const parseTime = (iso?: string | null): number | undefined => {
   if (!iso) return undefined;
@@ -40,7 +40,7 @@ export function formatClock(iso?: string | null): string | undefined {
 
 export const formatOwner = (owner?: string) => owner || "user";
 
-/** `just now`, `3 minutes ago`, `yesterday`: coarse relative time like Swift's `.relative`. */
+/** `just now`, `3 minutes ago`, `yesterday`: coarse relative time like a platform relative formatter. */
 export function formatRelative(iso: string | undefined | null, now: number = Date.now()): string {
   const t = parseTime(iso);
   if (t === undefined || t <= 0) return "—";

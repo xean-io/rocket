@@ -431,10 +431,12 @@ Log events come from following `logs/<project>/<service>.log`; compose
 services only log rocket's own `docker compose up` output there (container
 logs are served by `GET /v1/logs` via `docker compose logs`).
 
-## macOS app client contract
+## Desktop app client contract
 
-Rocket.app (and any other GUI) is a pure API client: it never spawns or kills
-processes itself.
+Rocket.app (`apps/desktop`, and any other GUI) is an API client: it never
+supervises services itself. Its only process action is starting the daemon
+(`rocket daemon run`) when none answers, using an installed `rocket` CLI or,
+as a last resort, the CLI bundled inside the app.
 
 **Discovery.** While rocketd runs, `$ROCKET_HOME/daemon.json` (default
 `~/.rocket/daemon.json`, mode `0600`, written atomically, removed on clean

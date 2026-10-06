@@ -1,4 +1,4 @@
-// Visual vocabulary for run and job states (port of Support/StatusStyle.swift).
+// Visual vocabulary for run and job states.
 import type { Health, JobStatus, Run, RunState } from "./bindings";
 
 export type Tone = "ok" | "warn" | "bad" | "muted";

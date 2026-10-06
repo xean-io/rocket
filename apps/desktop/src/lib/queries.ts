@@ -75,7 +75,7 @@ export function useConflicts(projects: readonly string[]): Conflict[] {
 
 /**
  * Recent jobs, newest first. `unavailable` is set for daemons without the
- * jobs API (Swift `jobsAvailable`); events patch the cache in place.
+ * jobs API (`jobsAvailable`); events patch the cache in place.
  */
 export function useJobs() {
   const qc = useQueryClient();

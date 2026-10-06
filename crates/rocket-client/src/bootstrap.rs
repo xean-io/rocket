@@ -1,6 +1,6 @@
-//! Locating the rocket binary and starting the daemon (Go:
-//! `client.Ensure` / `client.StartDetached`, plus the Swift `DaemonLauncher`
-//! search order for GUI apps that inherit a minimal PATH).
+//! Locating the rocket binary and starting the daemon
+//! `client.Ensure` / `client.StartDetached`, plus the extra
+//! search locations GUI apps need because they inherit a minimal PATH).
 
 use crate::client::{Client, TransportKind};
 use crate::daemon_info::DaemonInfo;
@@ -17,13 +17,16 @@ const BIN_NAME: &str = "rocket.exe";
 const BIN_NAME: &str = "rocket";
 
 /// Candidate rocket binaries, best first: daemon.json's `rocket_bin`,
-/// `$ROCKET_BIN`, every `$PATH` entry, then common install locations (GUI
-/// apps get a minimal PATH). Pure: nothing is checked on disk.
+/// `$ROCKET_BIN`, every `$PATH` entry, common install locations (GUI apps get
+/// a minimal PATH), and finally `bundled`: the CLI shipped inside a desktop
+/// app. It comes last on purpose, so an installed CLI wins and the CLI and the
+/// app agree on one daemon version. Pure: nothing is checked on disk.
 pub fn candidate_rocket_bins(
     info_bin: Option<&Path>,
     rocket_bin_env: Option<&OsStr>,
     path_var: Option<&OsStr>,
     home: Option<&Path>,
+    bundled: Option<&Path>,
 ) -> Vec<PathBuf> {
     let mut out: Vec<PathBuf> = Vec::new();
     out.extend(
@@ -44,6 +47,11 @@ pub fn candidate_rocket_bins(
         extra.extend(["go/bin", ".local/bin", "bin"].map(|d| h.join(d)));
     }
     out.extend(extra.into_iter().map(|d| d.join(BIN_NAME)));
+    out.extend(
+        bundled
+            .filter(|p| !p.as_os_str().is_empty())
+            .map(Path::to_path_buf),
+    );
     out
 }
 
@@ -55,12 +63,18 @@ pub fn find_rocket_bin_in(candidates: &[PathBuf]) -> Option<PathBuf> {
 /// [`candidate_rocket_bins`] over the process environment, then the first
 /// executable one. `info` is the current daemon.json, when readable.
 pub fn find_rocket_bin(info: Option<&DaemonInfo>) -> Option<PathBuf> {
+    find_rocket_bin_with(info, None)
+}
+
+/// [`find_rocket_bin`] with a bundled sidecar binary as the last fallback.
+pub fn find_rocket_bin_with(info: Option<&DaemonInfo>, bundled: Option<&Path>) -> Option<PathBuf> {
     let info_bin = info.map(|i| PathBuf::from(&i.rocket_bin));
     let candidates = candidate_rocket_bins(
         info_bin.as_deref(),
         std::env::var_os("ROCKET_BIN").as_deref(),
         std::env::var_os("PATH").as_deref(),
         std::env::home_dir().as_deref(),
+        bundled,
     );
     find_rocket_bin_in(&candidates)
 }
@@ -91,6 +105,9 @@ pub struct EnsureOptions {
     /// Binary to launch; `None` runs [`find_rocket_bin`]. Tests inject a
     /// script here.
     pub rocket_bin: Option<PathBuf>,
+    /// A rocket binary shipped with the calling app (Tauri sidecar), tried
+    /// only after every other candidate; see [`candidate_rocket_bins`].
+    pub bundled_bin: Option<PathBuf>,
     /// How long to wait for the daemon to answer (Go: 10s).
     pub timeout: Duration,
     /// Arguments of the launch command (Go: `daemon run`).
@@ -103,6 +120,7 @@ impl EnsureOptions {
             paths,
             transport: TransportKind::default(),
             rocket_bin: None,
+            bundled_bin: None,
             timeout: Duration::from_secs(10),
             launch_args: vec!["daemon".into(), "run".into()],
         }
@@ -124,13 +142,16 @@ pub async fn ensure_daemon(opts: &EnsureOptions) -> Result<Client, ClientError> 
     }
     let bin = match &opts.rocket_bin {
         Some(b) => b.clone(),
-        None => find_rocket_bin(DaemonInfo::load(&opts.paths.daemon_json).ok().as_ref())
-            .ok_or_else(|| {
-                ClientError::Launch(
-                    "the rocket binary was not found; install it, put it on PATH or set ROCKET_BIN"
-                        .into(),
-                )
-            })?,
+        None => find_rocket_bin_with(
+            DaemonInfo::load(&opts.paths.daemon_json).ok().as_ref(),
+            opts.bundled_bin.as_deref(),
+        )
+        .ok_or_else(|| {
+            ClientError::Launch(
+                "the rocket binary was not found; install it, put it on PATH or set ROCKET_BIN"
+                    .into(),
+            )
+        })?,
     };
     let mut child = spawn_detached(opts, &bin)?;
 

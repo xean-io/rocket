@@ -1,4 +1,4 @@
-//! Menu bar / system tray (port of `MenuBarContent.swift`): a template icon, a
+//! Menu bar / system tray (menu bar content): a template icon, a
 //! running-services headline, quick Up/Down per project, Collect Garbage and
 //! Quit. The menu is recomputed from `ps --all` + the project registry, debounced,
 //! whenever the supervisor sees a state event or the connection changes.
@@ -406,7 +406,7 @@ mod tests {
     }
 
     #[test]
-    fn long_project_names_are_truncated_like_the_swift_menu() {
+    fn long_project_names_are_truncated_like_the_original_menu() {
         let line = ProjectLine {
             name: "x".repeat(40),
             active: 1,
@@ -414,7 +414,7 @@ mod tests {
         };
         let label = project_label(&line);
         let name = label.split("  ").next().unwrap();
-        assert_eq!(name.chars().count(), 28); // 27 + ellipsis, like the Swift menu
+        assert_eq!(name.chars().count(), 28); // 27 + ellipsis, like the original menu
         assert!(name.ends_with('\u{2026}'));
         assert!(label.ends_with("  1/2"));
         let short = ProjectLine {

@@ -31,7 +31,7 @@ export function upsertRun(runs: Run[], run: Run): Run[] {
 
 /**
  * Replaces the job with the same id, or adds it; newest first. A terminal job
- * is never overwritten by a late "running" snapshot (Swift `retainingTerminalJob`).
+ * is never overwritten by a late "running" snapshot (`retainingTerminalJob`).
  */
 export function upsertJob(jobs: Job[], job: Job): Job[] {
   const current = jobs.find((j) => j.id === job.id);

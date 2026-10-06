@@ -243,13 +243,13 @@ pub async fn app(g: &Globals) -> Result<()> {
         .await
         .map_err(|e| {
             CliError::msg(format!(
-                "open -a {app}: {e}: (build it from macos/ or set ROCKET_APP to its path)"
+                "open -a {app}: {e}: (install it with `brew install --cask xean-io/rocket/rocket-app` or set ROCKET_APP to its path)"
             ))
         })?;
     if !output.status.success() {
         let combined = [output.stdout.as_slice(), output.stderr.as_slice()].concat();
         return Err(CliError::msg(format!(
-            "open -a {app}: {}: {} (build it from macos/ or set ROCKET_APP to its path)",
+            "open -a {app}: {}: {} (install it with `brew install --cask xean-io/rocket/rocket-app` or set ROCKET_APP to its path)",
             output.status,
             String::from_utf8_lossy(&combined).trim()
         )));

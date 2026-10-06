@@ -31,3 +31,58 @@ jobs:
         env:
           # Also publishes Casks/rocket.rb to main (contents: write above).
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Universal (arm64 + x86_64) desktop dmg. Runs after GoReleaser so the GitHub
+  # release already exists, and so its cask commit to main lands first.
+  desktop:
+    needs: goreleaser
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: v
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: apps/desktop/pnpm-lock.yaml
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the universal app and dmg
+        working-directory: apps/desktop
+        env:
+          # Stamped into the bundled CLI (`rocket version`) by prepare-sidecar.mjs.
+          ROCKET_VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm tauri build --target universal-apple-darwin --bundles app,dmg \
+            --config '{"version":"${{ steps.v.outputs.version }}"}'
+      - name: Upload the dmg to the release
+        id: dmg
+        run: |
+          dmg="target/universal-apple-darwin/release/bundle/dmg/Rocket_${{ steps.v.outputs.version }}_universal.dmg"
+          test -f "$dmg"
+          gh release upload "$GITHUB_REF_NAME" "$dmg" --clobber
+          echo "sha256=$(shasum -a 256 "$dmg" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      # This repo is its own tap: rewrite Casks/rocket-app.rb on main, the way
+      # GoReleaser commits Casks/rocket.rb (same GITHUB_TOKEN, contents: write).
+      - name: Update Casks/rocket-app.rb on main
+        run: |
+          git fetch origin main
+          git checkout -f -B main origin/main
+          sed -i '' \
+            -e 's|^  version ".*"|  version "${{ steps.v.outputs.version }}"|' \
+            -e 's|^  sha256 ".*"|  sha256 "${{ steps.dmg.outputs.sha256 }}"|' \
+            Casks/rocket-app.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/rocket-app.rb
+          git diff --cached --quiet || git commit -m "chore(brew): update rocket-app cask to $GITHUB_REF_NAME"
+          git push origin main

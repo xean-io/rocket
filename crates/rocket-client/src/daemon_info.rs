@@ -11,7 +11,7 @@ fn zero_time() -> OffsetDateTime {
 
 /// How GUI clients reach the daemon's token-protected TCP listener. The file
 /// exists only while the daemon runs. Parsing is lenient (every field has a
-/// default) like the Swift loader; callers needing TCP check `http`/`token`.
+/// default) like the original macOS loader; callers needing TCP check `http`/`token`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DaemonInfo {
     #[serde(default)]

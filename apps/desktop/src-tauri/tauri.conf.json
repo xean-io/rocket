@@ -4,9 +4,9 @@
   "version": "0.1.1",
   "identifier": "io.xean.rocket",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "node scripts/prepare-sidecar.mjs --debug && pnpm dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "node scripts/prepare-sidecar.mjs && pnpm build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -29,12 +29,22 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "Supervise dev processes for humans and AI agents",
+    "copyright": "Copyright (c) 2026 XEAN",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "externalBin": [
+      "binaries/rocket"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "-"
+    }
   }
 }

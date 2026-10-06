@@ -30,7 +30,7 @@ fn comments_and_messages_in_order() {
 }
 
 #[test]
-fn swift_fixture_events_sse() {
+fn recorded_fixture_events_sse() {
     let fixture = std::fs::read(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/tests/fixtures/events.sse"

@@ -22,7 +22,10 @@ Desktop app (`apps/desktop`, run from that directory): `pnpm install --frozen-lo
 then `pnpm typecheck`, `pnpm lint`, `pnpm test --run`, `pnpm build`. The Tauri crate
 (`apps/desktop/src-tauri`, package `rocket-desktop`) embeds the built frontend, so run
 `pnpm build` before compiling it. On Linux it also needs the webkit2gtk system
-packages; CI checks it on macOS only.
+packages; CI checks it on macOS only. `src-tauri/build.rs` writes an empty
+placeholder for the `rocket` sidecar so `cargo check/test` work on a fresh clone;
+`pnpm tauri build|dev` always rebuilds the real one (`scripts/prepare-sidecar.mjs`).
+Package it with `pnpm tauri build --bundles app,dmg`.
 
 ## Layout (hexagonal)
 
@@ -38,7 +41,8 @@ packages; CI checks it on macOS only.
 | `crates/rocket-scaffold` | `rocket init` detection + rendering |
 | `crates/rocket-agentdocs` | `rocket agent install` content + idempotent block upsert |
 | `crates/rocket-cli` | clap CLI (`rocket` binary); `tests/e2e` drives the built binary (feature `e2e`) |
-| `apps/desktop` | Tauri v2 + React app on top of `rocket-client` |
+| `apps/desktop` | Tauri v2 + React app on top of `rocket-client`; bundles the `rocket` CLI as a sidecar (`scripts/prepare-sidecar.mjs`) |
+| `Casks/` | Homebrew casks: `rocket.rb` (CLI, GoReleaser) and `rocket-app.rb` (desktop dmg, release workflow) |
 | `testdata/` | fixtures only (`fixture/` for e2e, `init/` for `rocket init`, `manifests/`) |
 
 ## Rules
