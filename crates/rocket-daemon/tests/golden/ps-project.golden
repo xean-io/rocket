@@ -1,0 +1,37 @@
+200
+{
+  "services": [
+    {
+      "project": "rocket-fixture",
+      "service": "fixed",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    },
+    {
+      "project": "rocket-fixture",
+      "service": "sleeper",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    },
+    {
+      "project": "rocket-fixture",
+      "service": "static",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    },
+    {
+      "project": "rocket-fixture",
+      "service": "web",
+      "env": "dev",
+      "kind": "run",
+      "state": "stopped",
+      "health": "unknown"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Rocket",
+  "version": "1.0.0",
+  "identifier": "io.xean.rocket",
+  "build": {
+    "beforeDevCommand": "node scripts/prepare-sidecar.mjs --debug && pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "node scripts/prepare-sidecar.mjs && pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Rocket",
+        "width": 1200,
+        "height": 760,
+        "minWidth": 1000,
+        "minHeight": 640,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "Supervise dev processes for humans and AI agents",
+    "copyright": "Copyright (c) 2026 XEAN",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": [
+      "binaries/rocket"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "-"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQxRTQyQjM3NDY5MERDNEEKUldSSzNKQkdOeXZrMFl2R0JjNXBvVHlNQkJaamxzbUluTTluZkNTMUFkSUNCMXNDZXRrTFkxbHMK",
+      "endpoints": [
+        "https://github.com/xean-io/rocket/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}

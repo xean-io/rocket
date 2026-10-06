@@ -1,0 +1,158 @@
+{
+  "name": "autodropshipping",
+  "root": "<ROOT>",
+  "dotenv": [
+    ".env"
+  ],
+  "taskfile": "Taskfile.yml",
+  "compose_files": [
+    "compose.yaml",
+    "docker-compose.yaml"
+  ],
+  "envs": [
+    {
+      "name": "dev",
+      "files": [
+        "compose.yaml"
+      ]
+    },
+    {
+      "name": "smoke",
+      "files": [
+        "docker-compose.yaml"
+      ]
+    }
+  ],
+  "services": [
+    {
+      "name": "minio",
+      "compose": "minio",
+      "profiles": [
+        "ops"
+      ],
+      "ports": [
+        {
+          "name": "p9000",
+          "default": 9000,
+          "env": "MINIO_PORT",
+          "target": 9000
+        },
+        {
+          "name": "p9001",
+          "default": 9001,
+          "env": "MINIO_CONSOLE_PORT",
+          "target": 9001
+        }
+      ]
+    },
+    {
+      "name": "postgres",
+      "compose": "postgres",
+      "profiles": [
+        "deps"
+      ],
+      "ports": [
+        {
+          "name": "main",
+          "default": 5432,
+          "env": "POSTGRES_PORT",
+          "target": 5432
+        }
+      ]
+    },
+    {
+      "name": "redis",
+      "compose": "redis",
+      "profiles": [
+        "deps"
+      ],
+      "ports": [
+        {
+          "name": "main",
+          "default": 6379,
+          "target": 6379
+        }
+      ]
+    },
+    {
+      "name": "worker",
+      "compose": "worker",
+      "profiles": [
+        "apps"
+      ]
+    },
+    {
+      "name": "cp-dev",
+      "task": "cp:dev"
+    },
+    {
+      "name": "dev",
+      "task": "dev"
+    }
+  ],
+  "setup": [
+    {
+      "name": "install",
+      "task": "install"
+    },
+    {
+      "name": "migrate",
+      "task": "db:migrate"
+    }
+  ],
+  "pipelines": [
+    "cp:test",
+    "infra:down",
+    "infra:up",
+    "lint",
+    "test"
+  ],
+  "deploy_tasks": [
+    "deploy:prod",
+    "release:ci"
+  ],
+  "tasks": [
+    {
+      "name": "cp:dev",
+      "desc": "Control plane dev server"
+    },
+    {
+      "name": "cp:test"
+    },
+    {
+      "name": "db:migrate",
+      "desc": "Apply migrations"
+    },
+    {
+      "name": "deploy:prod"
+    },
+    {
+      "name": "dev",
+      "desc": "Start the dev stack"
+    },
+    {
+      "name": "infra:down"
+    },
+    {
+      "name": "infra:up"
+    },
+    {
+      "name": "install",
+      "desc": "Install dependencies"
+    },
+    {
+      "name": "lint"
+    },
+    {
+      "name": "release:ci"
+    },
+    {
+      "name": "test",
+      "desc": "Run unit tests"
+    }
+  ],
+  "notes": [
+    "services only in docker-compose.yaml (env smoke, not added): control-plane",
+    "compose.yaml and docker-compose.yaml share the compose project name \"xean-spectrai\"; rocket forces rocket-autodropshipping-<env> per env, so their volumes no longer collide"
+  ]
+}

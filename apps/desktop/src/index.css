@@ -1,0 +1,220 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark mode follows the OS: `dark:` utilities match prefers-color-scheme. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+/*
+ * XEAN palette (xean/src/styles/tokens.css, brand/README.md).
+ * Violet is the only accent: selection, focus ring and primary actions.
+ * Status colours stay semantic (green / orange / red / muted).
+ */
+@theme inline {
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    --font-heading: var(--font-sans);
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+    --color-violet: var(--xean-violet);
+    --color-bone: var(--xean-bone);
+    --color-lacquer: var(--xean-lacquer);
+    --color-ground: var(--ground);
+    --color-surface: var(--surface);
+    --color-hairline: var(--hairline);
+    --color-ink: var(--ink);
+    --color-secondary-ink: var(--secondary-ink);
+    --color-glow: var(--glow);
+    --color-stone: var(--stone);
+
+    --color-status-ok: var(--status-ok);
+    --color-status-warn: var(--status-warn);
+    --color-status-bad: var(--status-bad);
+    --color-status-muted: var(--status-muted);
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    color-scheme: light dark;
+
+    --xean-violet: #9f63b9;
+    --xean-bone: #f3efe6;
+    --xean-lacquer: #0b0b0b;
+
+    /* Adaptive pairs (light). */
+    --ground: #f3efe6;
+    --surface: #faf8f3;
+    --hairline: #dad5cb;
+    --ink: #0b0b0b;
+    --secondary-ink: #68645e;
+    --glow: #e9dfee;
+    --stone: #9a958c;
+
+    --status-ok: #2d8f56;
+    --status-warn: #c46f12;
+    --status-bad: #cc3a35;
+    --status-muted: #8a857d;
+
+    /* 0.5px hairlines on retina; 1px at reduced opacity on 1x displays. */
+    --hairline-width: 0.5px;
+
+    --background: var(--ground);
+    --foreground: var(--ink);
+    --card: var(--surface);
+    --card-foreground: var(--ink);
+    --popover: var(--surface);
+    --popover-foreground: var(--ink);
+    --primary: var(--xean-violet);
+    --primary-foreground: var(--xean-lacquer);
+    --secondary: color-mix(in oklab, var(--ground), var(--ink) 6%);
+    --secondary-foreground: var(--ink);
+    --muted: color-mix(in oklab, var(--ground), var(--ink) 5%);
+    --muted-foreground: var(--secondary-ink);
+    --accent: var(--glow);
+    --accent-foreground: var(--ink);
+    --destructive: var(--status-bad);
+    --border: var(--hairline);
+    --input: var(--hairline);
+    --ring: var(--xean-violet);
+    --chart-1: var(--xean-violet);
+    --chart-2: var(--status-ok);
+    --chart-3: var(--status-warn);
+    --chart-4: var(--status-bad);
+    --chart-5: var(--stone);
+    --radius: 0.5rem;
+    --sidebar: var(--surface);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--xean-violet);
+    --sidebar-primary-foreground: var(--xean-lacquer);
+    --sidebar-accent: color-mix(in oklab, var(--xean-violet) 24%, transparent);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--hairline);
+    --sidebar-ring: var(--xean-violet);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ground: #0b0b0b;
+        --surface: #141414;
+        --hairline: #2c2c2c;
+        --ink: #f3efe6;
+        --secondary-ink: #9a958c;
+        --glow: #35293b;
+        --stone: #9a958c;
+
+        --status-ok: #4cc27f;
+        --status-warn: #f0a04b;
+        --status-bad: #f2605c;
+        --status-muted: #7d7870;
+
+        --input: color-mix(in oklab, var(--hairline), var(--ink) 6%);
+    }
+}
+
+@media (max-resolution: 1.5dppx) {
+    :root {
+        --hairline-width: 1px;
+    }
+    * {
+        --border: color-mix(in oklab, var(--hairline) 70%, transparent);
+    }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans antialiased;
+    font-size: 14px;
+  }
+  body {
+    @apply bg-background text-foreground cursor-default select-none overflow-hidden;
+  }
+  /* Content the user may want to copy. */
+  .selectable,
+  .selectable * {
+    user-select: text;
+    cursor: text;
+  }
+}
+
+/* Quiet monospaced tracked label: ports, pids, owners, key names. */
+@utility meta {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    line-height: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--secondary-ink);
+}
+
+/* Hairline separators. */
+@utility hairline-b {
+    border-bottom: var(--hairline-width) solid var(--border);
+}
+@utility hairline-t {
+    border-top: var(--hairline-width) solid var(--border);
+}
+@utility hairline-l {
+    border-left: var(--hairline-width) solid var(--border);
+}
+@utility hairline-r {
+    border-right: var(--hairline-width) solid var(--border);
+}
+
+/* The XEAN horizon: ground with a low violet glow rising from the bottom centre. */
+@utility xean-backdrop {
+    background-image: radial-gradient(
+        circle 520px at 50% 105%,
+        color-mix(in oklab, var(--glow) 90%, transparent),
+        transparent
+    );
+}
+
+@keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+@utility status-pulse {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: status-pulse 1.2s ease-in-out infinite;
+    }
+}

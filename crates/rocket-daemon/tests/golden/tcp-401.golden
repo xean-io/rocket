@@ -1,0 +1,2 @@
+401
+{"error":"missing or invalid bearer token (see daemon.json)","code":"unauthorized"}

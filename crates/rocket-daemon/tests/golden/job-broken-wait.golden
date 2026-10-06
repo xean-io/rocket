@@ -1,0 +1,30 @@
+200
+{
+  "id": "jb76b9fb451",
+  "project": "rocket-fixture",
+  "name": "broken",
+  "kind": "pipeline",
+  "env": "dev",
+  "owner": "user",
+  "steps": [
+    {
+      "run": "echo before-fail"
+    },
+    {
+      "run": "echo failing; exit 3"
+    },
+    {
+      "run": "echo never-runs"
+    }
+  ],
+  "status": "failed",
+  "step": 2,
+  "pid": 57375,
+  "pgid": 57375,
+  "exit_code": 3,
+  "started_at": "2026-10-06T18:50:28.772682Z",
+  "finished_at": "2026-10-06T18:50:28.781026Z",
+  "duration_ms": 8,
+  "log_path": "/private/tmp/rkg29j56nvn/home/logs/rocket-fixture/jobs/jb76b9fb451.log",
+  "error": "step 2 (run echo failing; exit 3) exited with code 3"
+}

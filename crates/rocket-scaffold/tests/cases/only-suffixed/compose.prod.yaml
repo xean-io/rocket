@@ -1,0 +1,7 @@
+name: shop
+services:
+  web:
+    ports: ["${WEB_PORT:-8080}:80"]
+  db:
+    profiles: [data]
+    ports: ["5432:5432", "127.0.0.1:${PGX:-6000}:5433/tcp"]

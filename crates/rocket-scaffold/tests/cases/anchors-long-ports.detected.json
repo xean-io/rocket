@@ -1,0 +1,88 @@
+{
+  "name": "anchors-long-ports",
+  "root": "<ROOT>",
+  "compose_files": [
+    "compose.yaml",
+    "docker-compose.yml",
+    "compose.override.yaml",
+    "compose.smoke.yaml"
+  ],
+  "envs": [
+    {
+      "name": "dev",
+      "files": [
+        "compose.yaml",
+        "compose.override.yaml"
+      ]
+    },
+    {
+      "name": "smoke",
+      "files": [
+        "docker-compose.yml"
+      ]
+    },
+    {
+      "name": "smoke-alt",
+      "files": [
+        "compose.smoke.yaml"
+      ]
+    }
+  ],
+  "services": [
+    {
+      "name": "a",
+      "compose": "a",
+      "profiles": [
+        "base"
+      ],
+      "ports": [
+        {
+          "name": "main",
+          "default": 7000,
+          "target": 7000
+        }
+      ]
+    },
+    {
+      "name": "b",
+      "compose": "b",
+      "profiles": [
+        "base"
+      ],
+      "ports": [
+        {
+          "name": "p80",
+          "default": 9090,
+          "env": "B_PORT",
+          "target": 80
+        },
+        {
+          "name": "p81",
+          "default": 9091,
+          "target": 81
+        },
+        {
+          "name": "p82",
+          "default": 8082,
+          "target": 82
+        }
+      ]
+    },
+    {
+      "name": "c",
+      "compose": "c",
+      "ports": [
+        {
+          "name": "main",
+          "default": 1234,
+          "env": "C_PORT",
+          "target": 1234
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "services only in docker-compose.yml (env smoke, not added): e",
+    "services only in compose.smoke.yaml (env smoke-alt, not added): d"
+  ]
+}

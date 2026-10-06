@@ -1,0 +1,22 @@
+[package]
+name = "rocket-scaffold"
+description = "rocket init: detects Taskfile, compose files and .env and renders a starting rocket.yaml"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+rocket-adapters = { path = "../rocket-adapters" }
+rocket-domain = { path = "../rocket-domain" }
+rocket-manifest = { path = "../rocket-manifest" }
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

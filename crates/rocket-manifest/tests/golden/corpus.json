@@ -1,0 +1,5112 @@
+{
+  "dotenv_cases": [
+    {
+      "name": "basic",
+      "input": "# comment\nexport A=1\nB = \"two words\"\nC='x#y'\nD=val # trailing\n\nEMPTY=\nbad line\n",
+      "want": {
+        "A": "1",
+        "B": "two words",
+        "C": "x#y",
+        "D": "val",
+        "EMPTY": ""
+      }
+    },
+    {
+      "name": "bom",
+      "input": "﻿A=1\nB=2\n",
+      "want": {
+        "B": "2"
+      }
+    },
+    {
+      "name": "comment only",
+      "input": "#A=1\n  #B=2\n",
+      "want": {}
+    },
+    {
+      "name": "cr only",
+      "input": "A=1\rB=2\n",
+      "want": {
+        "A": "1\rB=2"
+      }
+    },
+    {
+      "name": "crlf",
+      "input": "A=1\r\nB=2\r\n",
+      "want": {
+        "A": "1",
+        "B": "2"
+      }
+    },
+    {
+      "name": "double newline",
+      "input": "A=\"a\\nb\"\nB='a\\nb'\n",
+      "want": {
+        "A": "a\nb",
+        "B": "a\\nb"
+      }
+    },
+    {
+      "name": "empty quotes",
+      "input": "A=\"\"\nB=''\n",
+      "want": {
+        "A": "",
+        "B": ""
+      }
+    },
+    {
+      "name": "equals in value",
+      "input": "A=b=c\nURL=http://x?a=b\n",
+      "want": {
+        "A": "b=c",
+        "URL": "http://x?a=b"
+      }
+    },
+    {
+      "name": "export no space",
+      "input": "exportA=1\nexport  B=2\nexport\tC=3\n",
+      "want": {
+        "B": "2",
+        "exportA": "1"
+      }
+    },
+    {
+      "name": "export only",
+      "input": "export A\nexport =1\n",
+      "want": {}
+    },
+    {
+      "name": "hash no space",
+      "input": "A=abc#def\nB=abc #def\nC=abc\t#def\nD= #x\n",
+      "want": {
+        "A": "abc#def",
+        "B": "abc",
+        "C": "abc\t#def",
+        "D": "#x"
+      }
+    },
+    {
+      "name": "invalid keys",
+      "input": "1A=1\nA-B=2\n=3\n _OK=4\nA B=5\né=6\n",
+      "want": {
+        "_OK": "4"
+      }
+    },
+    {
+      "name": "later wins",
+      "input": "A=1\nA=2\n",
+      "want": {
+        "A": "2"
+      }
+    },
+    {
+      "name": "lone quote",
+      "input": "A=\"\nB='\n",
+      "want": {
+        "A": "\"",
+        "B": "'"
+      }
+    },
+    {
+      "name": "nested quotes",
+      "input": "A=\"it's\"\nB='say \"hi\"'\n",
+      "want": {
+        "A": "it's",
+        "B": "say \"hi\""
+      }
+    },
+    {
+      "name": "no trailing nl",
+      "input": "A=1",
+      "want": {
+        "A": "1"
+      }
+    },
+    {
+      "name": "quote then text",
+      "input": "A=\"abc\" # c\nB='x' y\nC=\"a\"b\"\n",
+      "want": {
+        "A": "abc",
+        "B": "x",
+        "C": "a"
+      }
+    },
+    {
+      "name": "single quote sp",
+      "input": "A='  padded  '\nB=\"  padded  \"\n",
+      "want": {
+        "A": "  padded  ",
+        "B": "  padded  "
+      }
+    },
+    {
+      "name": "spaces",
+      "input": "  A  =  hi there  \n\tB=1\t\n",
+      "want": {
+        "A": "hi there",
+        "B": "1"
+      }
+    },
+    {
+      "name": "unicode",
+      "input": "A=héllo\nB=\"ü\"\n",
+      "want": {
+        "A": "héllo",
+        "B": "ü"
+      }
+    },
+    {
+      "name": "unterminated",
+      "input": "A=\"abc\nB='abc\nC=\"\n",
+      "want": {
+        "A": "\"abc",
+        "B": "'abc",
+        "C": "\""
+      }
+    }
+  ],
+  "parse_cases": [
+    {
+      "name": "alias bomb",
+      "yaml": "version: 1\nname: x\na: \u0026a [x, x, x, x, x, x, x, x, x]\nb: \u0026b [*a, *a, *a, *a, *a, *a, *a, *a, *a]\nc: \u0026c [*b, *b, *b, *b, *b, *b, *b, *b, *b]\nd: \u0026d [*c, *c, *c, *c, *c, *c, *c, *c, *c]\ne: \u0026e [*d, *d, *d, *d, *d, *d, *d, *d, *d]\nf: \u0026f [*e, *e, *e, *e, *e, *e, *e, *e, *e]\ng: \u0026g [*f, *f, *f, *f, *f, *f, *f, *f, *f]\nservices: {a: {run: x, profiles: *g}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field a not found in type manifest.fileYAML\n  line 4: field b not found in type manifest.fileYAML\n  line 5: field c not found in type manifest.fileYAML\n  line 6: field d not found in type manifest.fileYAML\n  line 7: field e not found in type manifest.fileYAML\n  line 8: field f not found in type manifest.fileYAML\n  line 9: field g not found in type manifest.fileYAML\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string\n  line 8: cannot unmarshal !!seq into string"
+    },
+    {
+      "name": "alias key",
+      "yaml": "version: 1\nname: x\nk: \u0026k a\nservices:\n  *k : {run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field k not found in type manifest.fileYAML"
+    },
+    {
+      "name": "alias key dup",
+      "yaml": "version: 1\nname: x\nk: \u0026k a\nservices:\n  *k : {run: x}\n  *k : {run: y}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field k not found in type manifest.fileYAML\n  line 6: mapping key \"k\" already defined at line 5"
+    },
+    {
+      "name": "alias list",
+      "yaml": "version: 1\nname: x\nl: \u0026l [p, q]\nservices:\n  a: {run: x, profiles: *l, depends_on: *l}\n  p: {run: x}\n  q: {run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field l not found in type manifest.fileYAML"
+    },
+    {
+      "name": "alias map",
+      "yaml": "version: 1\nname: x\nsvc: \u0026s {run: x}\nservices:\n  a: *s\n  b: *s\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field svc not found in type manifest.fileYAML"
+    },
+    {
+      "name": "alias null",
+      "yaml": "version: 1\nname: x\nn: \u0026n null\nservices:\n  a: {run: x, env: *n, health: *n}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field n not found in type manifest.fileYAML"
+    },
+    {
+      "name": "alias value",
+      "yaml": "version: 1\nname: x\nv: \u0026v echo hi\nservices:\n  a: {run: *v}\n  b: {run: *v}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field v not found in type manifest.fileYAML"
+    },
+    {
+      "name": "alias wrong type",
+      "yaml": "version: 1\nname: x\nl: \u0026l [p]\nservices:\n  a: {run: *l}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field l not found in type manifest.fileYAML\n  line 3: cannot unmarshal !!seq into string"
+    },
+    {
+      "name": "block seq",
+      "yaml": "version: 1\nname: x\nservices:\n  a:\n    run: x\n    depends_on:\n      - b\n  b:\n    run: y\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "depends_on": [
+              "b"
+            ]
+          },
+          "b": {
+            "name": "b",
+            "kind": "run",
+            "run": "y"
+          }
+        }
+      }
+    },
+    {
+      "name": "bom",
+      "yaml": "﻿version: 1\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "comment doc",
+      "yaml": "# nothing\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: EOF"
+    },
+    {
+      "name": "comments",
+      "yaml": "# top\nversion: 1 # v\nname: x\nservices:\n  # c\n  a: {run: x} # trailing\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "crlf",
+      "yaml": "version: 1\r\nname: x\r\nservices:\r\n  a: {run: x}\r\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "cycle three",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x, depends_on: [b]}, b: {run: x, depends_on: [c]}, c: {run: x, depends_on: [a]}, d: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - dependency cycle between services: a, b, c"
+    },
+    {
+      "name": "default env no envs",
+      "yaml": "version: 1\nname: x\ndefault_env: prod\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - default_env \"prod\" is not a declared env"
+    },
+    {
+      "name": "default env set",
+      "yaml": "version: 1\nname: x\ndefault_env: prod\nenvs: {dev: {}, prod: {}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "prod",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          },
+          "prod": {
+            "name": "prod"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "depends map elem",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, depends_on: [{a: b}]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "depends null elems",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, depends_on: [null, ~, b]}\n  b: {run: y}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "depends_on": [
+              "b"
+            ]
+          },
+          "b": {
+            "name": "b",
+            "kind": "run",
+            "run": "y"
+          }
+        }
+      }
+    },
+    {
+      "name": "depends numbers",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, depends_on: [1, 2]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": depends_on references unknown service \"1\"\n  - service \"a\": depends_on references unknown service \"2\""
+    },
+    {
+      "name": "depends scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, depends_on: b}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `b` into []string"
+    },
+    {
+      "name": "doc marker only",
+      "yaml": "---\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)\n  - no services declared"
+    },
+    {
+      "name": "dotenv list",
+      "yaml": "version: 1\nname: x\ndotenv: [.env, .env.local]\nservices: {a: {run: x, dotenv: [.svc]}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "dotenv": [
+          ".env",
+          ".env.local"
+        ],
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "dotenv": [
+              ".svc"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "dotenv scalar",
+      "yaml": "version: 1\nname: x\ndotenv: .env\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `.env` into []string"
+    },
+    {
+      "name": "dup field plus unknown",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, run: y}\n  b: {bogus: 1, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: mapping key \"run\" already defined at line 4\n  line 5: field bogus not found in type manifest.serviceYAML"
+    },
+    {
+      "name": "dup service",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x}\n  a: {run: y}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 5: mapping key \"a\" already defined at line 4"
+    },
+    {
+      "name": "dup service field",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, run: y}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: mapping key \"run\" already defined at line 4"
+    },
+    {
+      "name": "dup top key",
+      "yaml": "version: 1\nname: x\nname: y\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: mapping key \"name\" already defined at line 2"
+    },
+    {
+      "name": "empty doc",
+      "yaml": "",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: EOF"
+    },
+    {
+      "name": "env deploy confirm string",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {deploy: {run: x, confirm: sure}}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `sure` into bool"
+    },
+    {
+      "name": "env deploy null",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {deploy: null}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "env deploy scalar",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {deploy: x}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `x` into manifest.deployYAML"
+    },
+    {
+      "name": "env full",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {compose: [a.yml], profiles: [p], deploy: {task: t, confirm: true}}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev",
+            "compose": [
+              "a.yml"
+            ],
+            "profiles": [
+              "p"
+            ],
+            "deploy": {
+              "task": "t",
+              "confirm": true
+            }
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "env list",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: [a]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into map[string]string"
+    },
+    {
+      "name": "env long value",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: {A: [1], LONGVARIABLENAME: {a: b}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into string\n  line 4: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "env map value",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: {A: {b: c}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "env null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: null}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "env ref brace text",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: {Z: '{nodot}', A: '{.p}', B: '{a.}', C: '{a b.p}', D: '${a.p}'}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "env": {
+              "A": "{.p}",
+              "B": "{a.}",
+              "C": "{a b.p}",
+              "D": "${a.p}",
+              "Z": "{nodot}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "env ref sorted",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {p: {default: 1}}}\n  b: {run: x, ports: {p: {default: 2}}}\n  c: {run: x, env: {Z: '{b.p}', A: '{a.p}', B: '{a.p}'}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "p",
+                "default": 1
+              }
+            ]
+          },
+          "b": {
+            "name": "b",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "p",
+                "default": 2
+              }
+            ]
+          },
+          "c": {
+            "name": "c",
+            "kind": "run",
+            "run": "x",
+            "env": {
+              "A": "{a.p}",
+              "B": "{a.p}",
+              "Z": "{b.p}"
+            },
+            "depends_on": [
+              "a",
+              "b"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "env scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: foo}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `foo` into map[string]string"
+    },
+    {
+      "name": "env seq value",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: {A: [1]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into string"
+    },
+    {
+      "name": "env values",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, env: {A: 1, B: true, C: null, D: 1.50, E: \"s\", F: ~}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "env": {
+              "A": "1",
+              "B": "true",
+              "C": "",
+              "D": "1.50",
+              "E": "s",
+              "F": ""
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "env var bad scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1, env: \"1BAD\"}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": invalid env var name \"1BAD\""
+    },
+    {
+      "name": "env var empty",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1, env: \"\"}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "env var unicode",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1, env: \"caf\\u00e9\"}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": invalid env var name \"café\""
+    },
+    {
+      "name": "envs empty",
+      "yaml": "version: 1\nname: x\nenvs: {}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "envs list",
+      "yaml": "version: 1\nname: x\nenvs: [dev]\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!seq into map[string]manifest.envYAML"
+    },
+    {
+      "name": "envs null",
+      "yaml": "version: 1\nname: x\nenvs: {dev: null, qa: ~}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          },
+          "qa": {
+            "name": "qa"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "envs only prod",
+      "yaml": "version: 1\nname: x\nenvs: {qa: {}, prod: {}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "prod",
+        "envs": {
+          "prod": {
+            "name": "prod"
+          },
+          "qa": {
+            "name": "qa"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "explicit key",
+      "yaml": "version: 1\nname: x\n? services\n: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "fixture autodropshipping",
+      "yaml": "version: 1\nname: autodropshipping\ndotenv: [.env]\nenvs:\n  dev:  { compose: [compose.yaml], profiles: [deps] }\n  full: { compose: [compose.yaml, docker-compose.yaml], profiles: [deps, apps, trends] }\n  prod: { deploy: { task: \"deploy:prod\", confirm: true } }\nservices:\n  db:            { compose: db, ports: { main: { default: 5432, env: DB_PORT } } }\n  cache:         { compose: redis, ports: { main: { default: 6380, env: REDIS_PORT } } }\n  control-plane: { run: \"pnpm dev\", cwd: apps/control-plane, depends_on: [db, cache],\n                   env: { NODE_ENV: development },\n                   ports: { http: { default: 3000, env: PORT } }, health: { http: /healthz } }\n  trends:        { task: \"dev:trends\", profiles: [trends], depends_on: [db] }\ngroups:\n  deps: [db, cache]\n  all:  [\"*\"]\npipelines:\n  test: [{ task: test }]\n",
+      "root": "/projects/autodropshipping",
+      "ok": true,
+      "project": {
+        "name": "autodropshipping",
+        "root": "/projects/autodropshipping",
+        "dotenv": [
+          ".env"
+        ],
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev",
+            "compose": [
+              "compose.yaml"
+            ],
+            "profiles": [
+              "deps"
+            ]
+          },
+          "full": {
+            "name": "full",
+            "compose": [
+              "compose.yaml",
+              "docker-compose.yaml"
+            ],
+            "profiles": [
+              "deps",
+              "apps",
+              "trends"
+            ]
+          },
+          "prod": {
+            "name": "prod",
+            "deploy": {
+              "task": "deploy:prod",
+              "confirm": true
+            }
+          }
+        },
+        "services": {
+          "cache": {
+            "name": "cache",
+            "kind": "compose",
+            "compose": "redis",
+            "ports": [
+              {
+                "name": "main",
+                "default": 6380,
+                "env": "REDIS_PORT"
+              }
+            ]
+          },
+          "control-plane": {
+            "name": "control-plane",
+            "kind": "run",
+            "run": "pnpm dev",
+            "cwd": "apps/control-plane",
+            "env": {
+              "NODE_ENV": "development"
+            },
+            "depends_on": [
+              "db",
+              "cache"
+            ],
+            "ports": [
+              {
+                "name": "http",
+                "default": 3000,
+                "env": "PORT"
+              }
+            ],
+            "health": {
+              "http": "/healthz"
+            }
+          },
+          "db": {
+            "name": "db",
+            "kind": "compose",
+            "compose": "db",
+            "ports": [
+              {
+                "name": "main",
+                "default": 5432,
+                "env": "DB_PORT"
+              }
+            ]
+          },
+          "trends": {
+            "name": "trends",
+            "kind": "task",
+            "task": "dev:trends",
+            "profiles": [
+              "trends"
+            ],
+            "depends_on": [
+              "db"
+            ]
+          }
+        },
+        "groups": {
+          "all": [
+            "*"
+          ],
+          "deps": [
+            "db",
+            "cache"
+          ]
+        },
+        "pipelines": {
+          "test": [
+            {
+              "task": "test"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "test": []
+      }
+    },
+    {
+      "name": "fixture invalid",
+      "yaml": "version: 1\nname: broken\nservices:\n  a: { run: \"x\", task: \"y\", depends_on: [ghost] }\n  b: { depends_on: [c] }\n  c: { run: \"z\", depends_on: [b], ports: { http: { default: 70000, env: \"bad-name\" } }, health: { port: nope } }\ngroups:\n  g: [a, missing]\n  a: [b]\n",
+      "root": "/projects/invalid",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got task, run)\n  - service \"b\": exactly one of compose, task or run is required (got none)\n  - service \"a\": depends_on references unknown service \"ghost\"\n  - service \"c\": port \"http\": port 70000 out of range\n  - service \"c\": port \"http\": invalid env var name \"bad-name\"\n  - service \"c\": health.port \"nope\" is not a declared port\n  - group \"a\": name collides with a service\n  - group \"g\": unknown service \"missing\"\n  - dependency cycle between services: b, c",
+      "unstable": true
+    },
+    {
+      "name": "fixture nuvara",
+      "yaml": "version: 1\nname: nuvara\ndotenv: [.env]\nsetup:\n  doctor:  { task: doctor }\n  install: { task: install }\n  migrate: { task: \"db:migrate\" }\nenvs:\n  dev:   { compose: [docker-compose.yml] }\n  smoke: { compose: [docker-compose.prod.yml], profiles: [release] }\n  stage: { deploy: { task: \"release:trigger\", confirm: true } }\n  prod:  { deploy: { task: \"release:ci\", confirm: true } }\nservices:\n  postgres: { compose: postgres, profiles: [deps], ports: { main: { default: 5435, env: POSTGRES_PORT } } }\n  redis:    { compose: redis,    profiles: [deps], ports: { main: { default: 6379, env: REDIS_PORT } } }\n  api:      { run: \"bun run dev\", cwd: apps/api, depends_on: [postgres, redis],\n              ports: { http: { default: 3002, env: PORT } }, health: { http: /api/health/live, timeout: 90s } }\n  web:      { run: \"bun run dev\", cwd: apps/web, depends_on: [api], ports: { http: { default: 3000, env: PORT } } }\n  causation: { task: \"dev:causation\", ports: { http: { default: 3003 } } }\ngroups:\n  deps: [postgres, redis]\n  core: [api, web]\n  all:  [\"*\"]\npipelines:\n  test:     [{ task: test }]\n  test:api: [{ task: \"test:api\" }]\n  ci:       [{ task: validate }, { task: lint }, { task: test }]\n",
+      "root": "/projects/nuvara",
+      "ok": true,
+      "project": {
+        "name": "nuvara",
+        "root": "/projects/nuvara",
+        "dotenv": [
+          ".env"
+        ],
+        "default_env": "dev",
+        "setup": {
+          "doctor": {
+            "task": "doctor"
+          },
+          "install": {
+            "task": "install"
+          },
+          "migrate": {
+            "task": "db:migrate"
+          }
+        },
+        "envs": {
+          "dev": {
+            "name": "dev",
+            "compose": [
+              "docker-compose.yml"
+            ]
+          },
+          "prod": {
+            "name": "prod",
+            "deploy": {
+              "task": "release:ci",
+              "confirm": true
+            }
+          },
+          "smoke": {
+            "name": "smoke",
+            "compose": [
+              "docker-compose.prod.yml"
+            ],
+            "profiles": [
+              "release"
+            ]
+          },
+          "stage": {
+            "name": "stage",
+            "deploy": {
+              "task": "release:trigger",
+              "confirm": true
+            }
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "bun run dev",
+            "cwd": "apps/api",
+            "depends_on": [
+              "postgres",
+              "redis"
+            ],
+            "ports": [
+              {
+                "name": "http",
+                "default": 3002,
+                "env": "PORT"
+              }
+            ],
+            "health": {
+              "http": "/api/health/live",
+              "timeout": 90000000000
+            }
+          },
+          "causation": {
+            "name": "causation",
+            "kind": "task",
+            "task": "dev:causation",
+            "ports": [
+              {
+                "name": "http",
+                "default": 3003
+              }
+            ]
+          },
+          "postgres": {
+            "name": "postgres",
+            "kind": "compose",
+            "compose": "postgres",
+            "profiles": [
+              "deps"
+            ],
+            "ports": [
+              {
+                "name": "main",
+                "default": 5435,
+                "env": "POSTGRES_PORT"
+              }
+            ]
+          },
+          "redis": {
+            "name": "redis",
+            "kind": "compose",
+            "compose": "redis",
+            "profiles": [
+              "deps"
+            ],
+            "ports": [
+              {
+                "name": "main",
+                "default": 6379,
+                "env": "REDIS_PORT"
+              }
+            ]
+          },
+          "web": {
+            "name": "web",
+            "kind": "run",
+            "run": "bun run dev",
+            "cwd": "apps/web",
+            "depends_on": [
+              "api"
+            ],
+            "ports": [
+              {
+                "name": "http",
+                "default": 3000,
+                "env": "PORT"
+              }
+            ]
+          }
+        },
+        "groups": {
+          "all": [
+            "*"
+          ],
+          "core": [
+            "api",
+            "web"
+          ],
+          "deps": [
+            "postgres",
+            "redis"
+          ]
+        },
+        "pipelines": {
+          "ci": [
+            {
+              "task": "validate"
+            },
+            {
+              "task": "lint"
+            },
+            {
+              "task": "test"
+            }
+          ],
+          "test": [
+            {
+              "task": "test"
+            }
+          ],
+          "test:api": [
+            {
+              "task": "test:api"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "ci": [],
+        "test": [],
+        "test:api": []
+      }
+    },
+    {
+      "name": "fixture unknown_field",
+      "yaml": "version: 1\nname: typo\nservices:\n  a: { run: \"x\", dependson: [b] }\n",
+      "root": "/projects/unknown_field",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: field dependson not found in type manifest.serviceYAML"
+    },
+    {
+      "name": "flow multiline",
+      "yaml": "version: 1\nname: x\nservices: {\n  a: {run: x,\n  cwd: y}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "cwd": "y"
+          }
+        }
+      }
+    },
+    {
+      "name": "ported: bad name",
+      "yaml": "version: 1\nname: 'Bad Name'\nservices: {a: {run: x}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - invalid project name \"Bad Name\" (use lowercase letters, digits, '.', '_' or '-')"
+    },
+    {
+      "name": "ported: bad timeout",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x, ports: {h: {default: 1}}, health: {timeout: soon}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"soon\""
+    },
+    {
+      "name": "ported: deploy with both",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {}, prod: {deploy: {task: a, run: b}}}\nservices: {a: {run: x}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - env \"prod\": deploy needs exactly one of task or run"
+    },
+    {
+      "name": "ported: deploy without action",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {}, prod: {deploy: {confirm: true}}}\nservices: {a: {run: x}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - env \"prod\": deploy needs exactly one of task or run"
+    },
+    {
+      "name": "ported: health path",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x, ports: {h: {default: 1}}, health: {http: health}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": health.http \"health\" must start with /"
+    },
+    {
+      "name": "ported: health without ports",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x, health: {tcp: true}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": health requires at least one port"
+    },
+    {
+      "name": "ported: missing version",
+      "yaml": "name: x\nservices: {a: {run: x}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)"
+    },
+    {
+      "name": "ported: name default",
+      "yaml": "version: 1\nservices: {a: {run: x}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "ported: no services",
+      "yaml": "version: 1\nname: x",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - no services declared"
+    },
+    {
+      "name": "ported: pipeline step",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\npipelines: {t: [{}]}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - pipeline \"t\" step 1: exactly one of task or run is required"
+    },
+    {
+      "name": "ported: self dependency",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x, depends_on: [a]}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\" depends on itself\n  - dependency cycle between services: a"
+    },
+    {
+      "name": "ported: unknown default env",
+      "yaml": "version: 1\nname: x\ndefault_env: qa\nenvs: {dev: {}}\nservices: {a: {run: x}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - default_env \"qa\" is not a declared env"
+    },
+    {
+      "name": "groups collision",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\ngroups: {a: [a]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - group \"a\": name collides with a service"
+    },
+    {
+      "name": "groups list",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\ngroups: [a]\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into map[string][]string"
+    },
+    {
+      "name": "groups null member",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\ngroups: {z: [a, null], y: null}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        },
+        "groups": {
+          "y": null,
+          "z": [
+            "a"
+          ]
+        }
+      }
+    },
+    {
+      "name": "groups ok",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}, b: {run: y}}\ngroups: {g: [a, b], all: ['*']}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          },
+          "b": {
+            "name": "b",
+            "kind": "run",
+            "run": "y"
+          }
+        },
+        "groups": {
+          "all": [
+            "*"
+          ],
+          "g": [
+            "a",
+            "b"
+          ]
+        }
+      }
+    },
+    {
+      "name": "groups scalar",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\ngroups: {z: a}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `a` into []string"
+    },
+    {
+      "name": "groups unknown",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\ngroups: {z: [q], y: [a, w]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - group \"y\": unknown service \"w\"\n  - group \"z\": unknown service \"q\""
+    },
+    {
+      "name": "health empty",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "health null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, health: null}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "health port no ports",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, health: {port: h}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": health requires at least one port\n  - service \"a\": health.port \"h\" is not a declared port"
+    },
+    {
+      "name": "health scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, health: foo}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `foo` into manifest.healthYAML"
+    },
+    {
+      "name": "health tcp int",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {tcp: 1}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!int `1` into bool"
+    },
+    {
+      "name": "health tcp quoted yes",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {tcp: \"yes\"}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "tcp": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health tcp string",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {tcp: maybe}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `maybe` into bool"
+    },
+    {
+      "name": "health tcp yes",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {tcp: yes}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "tcp": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout  1s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout:  1s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 1000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout \"\"",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: \"\"}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout +1s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: +1s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 1000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout -5s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: -5s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"-5s\""
+    },
+    {
+      "name": "health timeout .5s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: .5s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 500000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout .s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: .s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \".s\""
+    },
+    {
+      "name": "health timeout 0",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 0}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"0\""
+    },
+    {
+      "name": "health timeout 0s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 0s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"0s\""
+    },
+    {
+      "name": "health timeout 1.5s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1.5s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 1500000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 10",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 10}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"10\""
+    },
+    {
+      "name": "health timeout 100ms",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 100ms}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 100000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 1_0s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1_0s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"1_0s\""
+    },
+    {
+      "name": "health timeout 1d",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1d}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"1d\""
+    },
+    {
+      "name": "health timeout 1e3s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1e3s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"1e3s\""
+    },
+    {
+      "name": "health timeout 1h1h",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1h1h}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 7200000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 1h30m",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1h30m}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 5400000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 1s ",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1s }}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 1000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 1us",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1us}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 1000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 1x",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"1x\""
+    },
+    {
+      "name": "health timeout 1µs",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 1µs}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 1000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 2562047h47m16.854775807s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 2562047h47m16.854775807s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 9223372036854775807
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 2562047h47m16.854775808s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 2562047h47m16.854775808s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"2562047h47m16.854775808s\""
+    },
+    {
+      "name": "health timeout 2m3.5s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 2m3.5s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 123500000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 300ns",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 300ns}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 300
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 5.s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 5.s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 5000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 90",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 90}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"90\""
+    },
+    {
+      "name": "health timeout 90s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 90s}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 90000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 9223372036854775807ns",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 9223372036854775807ns}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 9223372036854775807
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout 9223372036854775808ns",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 9223372036854775808ns}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"9223372036854775808ns\""
+    },
+    {
+      "name": "health timeout null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: null}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout number",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: 45}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"45\""
+    },
+    {
+      "name": "health timeout quoted",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: \"45s\"}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {
+              "timeout": 45000000000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "health timeout s",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"s\""
+    },
+    {
+      "name": "health timeout ~",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {timeout: ~}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1
+              }
+            ],
+            "health": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "kind compose",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {compose: c}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "compose",
+            "compose": "c"
+          }
+        }
+      }
+    },
+    {
+      "name": "kind none",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {cwd: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got none)"
+    },
+    {
+      "name": "kinds all",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {compose: c, task: t, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got compose, task, run)"
+    },
+    {
+      "name": "kinds compose+run",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {compose: c, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got compose, run)"
+    },
+    {
+      "name": "kinds task+run",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {task: t, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got task, run)"
+    },
+    {
+      "name": "long scalar doc",
+      "yaml": "this is a rather long scalar\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `this is...` into manifest.fileYAML"
+    },
+    {
+      "name": "many problems",
+      "yaml": "version: 0\nname: Bad\ndefault_env: zz\nservices:\n  a: {run: x, depends_on: [a, nope], ports: {h: {default: 0, env: bad-env}}, health: {http: x, port: q}}\ngroups: {a: [nope]}\npipelines: {p: {needs: [nope], steps: [{}]}}\nsetup: {s: {}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)\n  - invalid project name \"Bad\" (use lowercase letters, digits, '.', '_' or '-')\n  - default_env \"zz\" is not a declared env\n  - service \"a\" depends on itself\n  - service \"a\": depends_on references unknown service \"nope\"\n  - service \"a\": port \"h\": port 0 out of range\n  - service \"a\": port \"h\": invalid env var name \"bad-env\"\n  - service \"a\": health.port \"q\" is not a declared port\n  - service \"a\": health.http \"x\" must start with /\n  - group \"a\": name collides with a service\n  - group \"a\": unknown service \"nope\"\n  - pipeline \"p\" needs: unknown service or group \"nope\" in project Bad\n  - pipeline \"p\" step 1: exactly one of task or run is required\n  - setup \"s\": exactly one of task or run is required\n  - dependency cycle between services: a"
+    },
+    {
+      "name": "many problems ordered",
+      "yaml": "version: 0\nname: Bad\nservices: {}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)\n  - invalid project name \"Bad\" (use lowercase letters, digits, '.', '_' or '-')\n  - no services declared"
+    },
+    {
+      "name": "merge alias scalar",
+      "yaml": "version: 1\nname: x\nv: \u0026v foo\nservices:\n  a: {\u003c\u003c: *v, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: map merge requires map or sequence of maps as the value"
+    },
+    {
+      "name": "merge duplicate key",
+      "yaml": "version: 1\nname: x\nb: \u0026b {run: x}\nservices:\n  a: {\u003c\u003c: *b, \u003c\u003c: *b}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field b not found in type manifest.fileYAML\n  line 5: mapping key \"\u003c\u003c\" already defined at line 5"
+    },
+    {
+      "name": "merge override keeps local",
+      "yaml": "version: 1\nname: x\nb: \u0026b {run: base}\nservices:\n  a: {\u003c\u003c: *b, run: local}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field b not found in type manifest.fileYAML"
+    },
+    {
+      "name": "merge ports",
+      "yaml": "version: 1\nname: x\nservices:\n  a:\n    run: x\n    ports:\n      \u003c\u003c: {h: {default: 1}}\n      g: {default: 2}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "g",
+                "default": 2
+              },
+              {
+                "name": "h",
+                "default": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "merge quoted not merge",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, \"\u003c\u003c\": 1}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: field \u003c\u003c not found in type manifest.serviceYAML"
+    },
+    {
+      "name": "merge scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {\u003c\u003c: foo, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: map merge requires map or sequence of maps as the value"
+    },
+    {
+      "name": "merge seq",
+      "yaml": "version: 1\nname: x\nb1: \u0026b1 {run: x}\nb2: \u0026b2 {cwd: z}\nservices:\n  a: {\u003c\u003c: [*b1, *b2]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field b1 not found in type manifest.fileYAML\n  line 4: field b2 not found in type manifest.fileYAML"
+    },
+    {
+      "name": "merge seq scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {\u003c\u003c: [foo], run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: map merge requires map or sequence of maps as the value"
+    },
+    {
+      "name": "merge service",
+      "yaml": "version: 1\nname: x\nbase: \u0026base {run: x, env: {A: '1'}}\nservices:\n  a: {\u003c\u003c: *base, cwd: y}\n  b:\n    \u003c\u003c: *base\n    run: override\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field base not found in type manifest.fileYAML"
+    },
+    {
+      "name": "merge top",
+      "yaml": "version: 1\nname: x\nbase: \u0026b {services: {a: {run: x}}}\n\u003c\u003c: *b\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field base not found in type manifest.fileYAML"
+    },
+    {
+      "name": "merge top fields",
+      "yaml": "base: \u0026b {version: 1, services: {a: {run: x}}}\n\u003c\u003c: *b\nname: x\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: field base not found in type manifest.fileYAML"
+    },
+    {
+      "name": "merge unknown field",
+      "yaml": "version: 1\nname: x\nb: \u0026b {bogus: 1}\nservices:\n  a: {\u003c\u003c: *b, run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field b not found in type manifest.fileYAML\n  line 3: field bogus not found in type manifest.serviceYAML"
+    },
+    {
+      "name": "name bool",
+      "yaml": "version: 1\nname: true\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "true",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "name empty quoted",
+      "yaml": "version: 1\nname: \"\"\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "name from slash root",
+      "yaml": "version: 1\nservices: {a: {run: x}}",
+      "root": "/",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - invalid project name \"/\" (use lowercase letters, digits, '.', '_' or '-')"
+    },
+    {
+      "name": "name from trailing slash root",
+      "yaml": "version: 1\nservices: {a: {run: x}}",
+      "root": "/code/my-app/",
+      "ok": true,
+      "project": {
+        "name": "my-app",
+        "root": "/code/my-app/",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "name from upper-case root",
+      "yaml": "version: 1\nservices: {a: {run: x}}",
+      "root": "/code/My-App",
+      "ok": true,
+      "project": {
+        "name": "my-app",
+        "root": "/code/My-App",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "name leading dash",
+      "yaml": "version: 1\nname: -x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - invalid project name \"-x\" (use lowercase letters, digits, '.', '_' or '-')"
+    },
+    {
+      "name": "name list",
+      "yaml": "version: 1\nname: [x]\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!seq into string"
+    },
+    {
+      "name": "name numeric",
+      "yaml": "version: 1\nname: 123\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "123",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "name unicode",
+      "yaml": "version: 1\nname: café\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - invalid project name \"café\" (use lowercase letters, digits, '.', '_' or '-')"
+    },
+    {
+      "name": "name with dot",
+      "yaml": "version: 1\nname: my.app_1-x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "my.app_1-x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "null doc",
+      "yaml": "null\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)\n  - no services declared"
+    },
+    {
+      "name": "pipeline: aliased steps",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api], steps: *s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unknown anchor 's' referenced"
+    },
+    {
+      "name": "pipeline: anchored steps",
+      "yaml": "version: 1\nname: p\nservices: {api: {run: api}}\nx: \u0026s [{run: z}]\npipelines: {check: {needs: [api], steps: *s}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: field x not found in type manifest.fileYAML"
+    },
+    {
+      "name": "pipeline: anchored steps ok",
+      "yaml": "version: 1\nname: p\nservices: {api: {run: api}}\npipelines:\n  a: \u0026s [{run: z}]\n  b: {needs: [api], steps: *s}\n  c: *s\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "p",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api"
+          }
+        },
+        "pipelines": {
+          "a": [
+            {
+              "run": "z"
+            }
+          ],
+          "b": [
+            {
+              "run": "z"
+            }
+          ],
+          "c": [
+            {
+              "run": "z"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "a": [],
+        "b": [
+          "api"
+        ],
+        "c": []
+      }
+    },
+    {
+      "name": "pipeline: dup needs",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api], needs: [api], steps: [{run: x}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: mapping key \"needs\" already defined at line 4"
+    },
+    {
+      "name": "pipeline: dup steps",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {steps: [{run: x}], steps: [{run: y}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: mapping key \"steps\" already defined at line 4"
+    },
+    {
+      "name": "pipeline: empty needs",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [], steps: [{run: x}]}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "pipelines",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api"
+          }
+        },
+        "pipelines": {
+          "check": [
+            {
+              "run": "x"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "check": []
+      }
+    },
+    {
+      "name": "pipeline: empty steps",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: []}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "pipelines",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api"
+          }
+        },
+        "pipelines": {
+          "check": []
+        }
+      },
+      "needs": {
+        "check": []
+      }
+    },
+    {
+      "name": "pipeline: invalid step",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api], steps: [{}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - pipeline \"check\" step 1: exactly one of task or run is required"
+    },
+    {
+      "name": "pipeline: merge in object",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {\u003c\u003c: {needs: [api]}, steps: [{run: x}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: unknown pipeline field \"\u003c\u003c\""
+    },
+    {
+      "name": "pipeline: missing steps",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: pipeline object requires steps"
+    },
+    {
+      "name": "pipeline: needs non-string",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [{a: b}], steps: [{run: x}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "pipeline: needs scalar",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: api, steps: [{run: x}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: pipeline needs must be an array"
+    },
+    {
+      "name": "pipeline: nested seq step",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [[{run: x}]]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into manifest.stepYAML"
+    },
+    {
+      "name": "pipeline: null needs",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: null, steps: [{run: test}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: pipeline needs must be an array"
+    },
+    {
+      "name": "pipeline: null pipeline",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: ~}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "pipelines",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api"
+          }
+        },
+        "pipelines": {
+          "check": []
+        }
+      },
+      "needs": {
+        "check": []
+      }
+    },
+    {
+      "name": "pipeline: null step",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [null, {run: x}]}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "pipelines",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api"
+          }
+        },
+        "pipelines": {
+          "check": [
+            {
+              "run": "x"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "check": []
+      }
+    },
+    {
+      "name": "pipeline: null steps",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api], steps: null}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: pipeline steps must be an array"
+    },
+    {
+      "name": "pipeline: scalar step",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [test]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `test` into manifest.stepYAML"
+    },
+    {
+      "name": "pipeline: step both",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [{run: x, task: y}]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - pipeline \"check\" step 1: exactly one of task or run is required"
+    },
+    {
+      "name": "pipeline: step dup field",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [{run: x, run: y}]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: mapping key \"run\" already defined at line 4"
+    },
+    {
+      "name": "pipeline: step map value",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [{run: {a: b}}]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "pipeline: step number",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [{run: 5}]}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "pipelines",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api"
+          }
+        },
+        "pipelines": {
+          "check": [
+            {
+              "run": "5"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "check": []
+      }
+    },
+    {
+      "name": "pipeline: unknown legacy step",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: [{run: test, typo: x}]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: unknown pipeline step field \"typo\""
+    },
+    {
+      "name": "pipeline: unknown object key",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api], steps: [{run: test}], needz: []}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: unknown pipeline field \"needz\""
+    },
+    {
+      "name": "pipeline: unknown object step",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [api], steps: [{run: test, typo: x}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: unknown pipeline step field \"typo\""
+    },
+    {
+      "name": "pipeline: unknown prerequisite",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: {needs: [missing], steps: [{run: test}]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - pipeline \"check\" needs: unknown service or group \"missing\" in project pipelines"
+    },
+    {
+      "name": "pipeline: wrong kind",
+      "yaml": "version: 1\nname: pipelines\nservices: {api: {run: api}}\npipelines: {check: test}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: pipeline must be an array or object"
+    },
+    {
+      "name": "pipelines forms",
+      "yaml": "version: 1\nname: pipelines\nservices: {db: {run: database}, api: {run: api, depends_on: [db]}}\ngroups: {infra: [db]}\npipelines:\n  legacy: [{run: lint}]\n  check: {needs: [infra, api], steps: [{task: test}]}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "pipelines",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api",
+            "depends_on": [
+              "db"
+            ]
+          },
+          "db": {
+            "name": "db",
+            "kind": "run",
+            "run": "database"
+          }
+        },
+        "groups": {
+          "infra": [
+            "db"
+          ]
+        },
+        "pipelines": {
+          "check": [
+            {
+              "task": "test"
+            }
+          ],
+          "legacy": [
+            {
+              "run": "lint"
+            }
+          ]
+        }
+      },
+      "needs": {
+        "check": [
+          "infra",
+          "api"
+        ],
+        "legacy": []
+      }
+    },
+    {
+      "name": "port default big",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 65536}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": port 65536 out of range"
+    },
+    {
+      "name": "port default float",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 8080.9}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 8080
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default float 9",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1e3}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 1000
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default hex",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 0x1F90}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 8080
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default huge",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 99999999999999999999}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!float `9999999...` into int"
+    },
+    {
+      "name": "port default legacy octal",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 010}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 8
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default max",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 65535}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 65535
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default negative",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: -1}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": port -1 out of range"
+    },
+    {
+      "name": "port default null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: null}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": port 0 out of range"
+    },
+    {
+      "name": "port default numeric string",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: \"8080\"}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `8080` into int"
+    },
+    {
+      "name": "port default octal",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 0o17}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 15
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default omitted",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": port 0 out of range"
+    },
+    {
+      "name": "port default string",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: abc}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `abc` into int"
+    },
+    {
+      "name": "port default underscore",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 8_080}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "h",
+                "default": 8080
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port default zero",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 0}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": port 0 out of range"
+    },
+    {
+      "name": "port env: alias",
+      "yaml": "version: 1\nname: templates\nt: \u0026t \"{port}\"\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: *t}}}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 4: port env binding \"PORT\" template must be a string"
+    },
+    {
+      "name": "port env: alias binding",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: *t}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unknown anchor 't' referenced"
+    },
+    {
+      "name": "port env: bad scalar name",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: bad-name}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": invalid env var name \"bad-name\""
+    },
+    {
+      "name": "port env: bad variable",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {'bad-name': \"{port}\"}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": invalid env var name \"bad-name\"\n  - service \"api\": port \"http\": invalid env var name \"bad-name\""
+    },
+    {
+      "name": "port env: default missing",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: \"{port}\", URL: {default: \"http://localhost:8080\"}}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": env binding \"URL\" template must contain {port}"
+    },
+    {
+      "name": "port env: default only",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PUBLIC_URL: {default: \"http://localhost:{port}\"}}}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "templates",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080
+              }
+            ]
+          }
+        }
+      },
+      "bindings": {
+        "api": {
+          "http": {
+            "PUBLIC_URL": {
+              "default": true,
+              "template": "http://localhost:{port}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "port env: duplicate variable",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: \"{port}\", PORT: \"{port}\"}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env variable \"PORT\" already defined"
+    },
+    {
+      "name": "port env: empty default map",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: {}}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env binding \"PORT\" requires only the default field (got )"
+    },
+    {
+      "name": "port env: empty mapping",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env mapping must not be empty"
+    },
+    {
+      "name": "port env: host port template",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {API_BIND: \"0.0.0.0:{port}\"}}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "templates",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "env": "API_BIND"
+              }
+            ]
+          }
+        }
+      },
+      "bindings": {
+        "api": {
+          "http": {
+            "API_BIND": {
+              "default": false,
+              "template": "0.0.0.0:{port}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "port env: legacy scalar",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: PORT}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "templates",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "env": "PORT"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port env: missing placeholder",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {API_BIND: \"0.0.0.0:8080\"}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": env binding \"API_BIND\" template must contain {port}"
+    },
+    {
+      "name": "port env: nonstring key",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {1: \"{port}\"}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env variable name must be a string"
+    },
+    {
+      "name": "port env: null binding",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: null}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env binding \"PORT\" template must be a string"
+    },
+    {
+      "name": "port env: null env",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: null}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "templates",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port env: numeric binding",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: 1234}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env binding \"PORT\" template must be a string"
+    },
+    {
+      "name": "port env: numeric default",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: {default: 1234}}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env binding \"PORT\" template must be a string"
+    },
+    {
+      "name": "port env: numeric scalar",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: 1234}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env must be a string or mapping"
+    },
+    {
+      "name": "port env: quoted numeric",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: \"1234\"}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": invalid env var name \"1234\""
+    },
+    {
+      "name": "port env: representative",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {A_PUBLIC_URL: {default: \"http://localhost:{port}\"}, Z_PORT: \"{port}\", API_BIND: \"0.0.0.0:{port}\"}}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "templates",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "env": "API_BIND"
+              }
+            ]
+          }
+        }
+      },
+      "bindings": {
+        "api": {
+          "http": {
+            "API_BIND": {
+              "default": false,
+              "template": "0.0.0.0:{port}"
+            },
+            "A_PUBLIC_URL": {
+              "default": true,
+              "template": "http://localhost:{port}"
+            },
+            "Z_PORT": {
+              "default": false,
+              "template": "{port}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "port env: sequence",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: [PORT]}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env must be a string or mapping"
+    },
+    {
+      "name": "port env: unknown default",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: \"{port}\", URL: {default: \"http://localhost:{port}\", fallback: x}}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env binding \"URL\" requires only the default field (got default, fallback)"
+    },
+    {
+      "name": "port env: unknown port field",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: \"{port}\"}, typo: true}}}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field typo not found in type manifest.portYAML"
+    },
+    {
+      "name": "port env: wrong default",
+      "yaml": "version: 1\nname: templates\nservices: {api: {run: dev, ports: {http: {default: 8080, env: {PORT: {value: \"{port}\"}}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: line 3: port env binding \"PORT\" requires only the default field (got value)"
+    },
+    {
+      "name": "port null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: null}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": port \"h\": port 0 out of range"
+    },
+    {
+      "name": "port ref: dotted",
+      "yaml": "version: 1\nname: refs\nservices:\n  api.backend: {run: api, ports: {http: {default: 8080}}}\n  web: {run: web, env: {API_URL: \"http://localhost:{api.backend.http}\", SHELL: \"${missing.http}\"}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "refs",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api.backend": {
+            "name": "api.backend",
+            "kind": "run",
+            "run": "api",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080
+              }
+            ]
+          },
+          "web": {
+            "name": "web",
+            "kind": "run",
+            "run": "web",
+            "env": {
+              "API_URL": "http://localhost:{api.backend.http}",
+              "SHELL": "${missing.http}"
+            },
+            "depends_on": [
+              "api.backend"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port ref: mixed explicit cycle",
+      "yaml": "version: 1\nname: refs\nservices:\n  api: {run: api, depends_on: [web], ports: {http: {default: 8080}}}\n  web: {run: web, env: {URL: \"http://localhost:{api.http}\"}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - dependency cycle between services: api, web"
+    },
+    {
+      "name": "port ref: reference cycle",
+      "yaml": "version: 1\nname: refs\nservices:\n  api: {run: api, ports: {http: {default: 8080}}, env: {URL: \"http://localhost:{web.http}\"}}\n  web: {run: web, ports: {http: {default: 3000}}, env: {URL: \"http://localhost:{api.http}\"}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - dependency cycle between services: api, web"
+    },
+    {
+      "name": "port ref: self reference",
+      "yaml": "version: 1\nname: refs\nservices:\n  api: {run: api, ports: {http: {default: 8080}}, env: {URL: \"http://localhost:{api.http}\"}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\" depends on itself\n  - dependency cycle between services: api"
+    },
+    {
+      "name": "port ref: unknown port",
+      "yaml": "version: 1\nname: refs\nservices:\n  api: {run: api, ports: {http: {default: 8080}}}\n  web: {run: web, env: {API_URL: \"http://localhost:{api.admin}\"}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"web\": env reference {api.admin}: unknown port \"admin\" in service \"api\""
+    },
+    {
+      "name": "port ref: unknown service",
+      "yaml": "version: 1\nname: refs\nservices:\n  web: {run: web, env: {API_URL: \"http://localhost:{missing.http}\"}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"web\": env reference {missing.http}: unknown service \"missing\"\n  - service \"web\": depends_on references unknown service \"missing\""
+    },
+    {
+      "name": "port refs add deps",
+      "yaml": "version: 1\nname: refs\nservices:\n  api: {run: api, ports: {http: {default: 8080, env: PORT}}}\n  commerce: {run: commerce, ports: {http: {default: 9000, env: PORT}}}\n  web:\n    task: web\n    depends_on: [commerce]\n    env:\n      API_URL: \"http://127.0.0.1:{api.http}/{api.http}\"\n      COMMERCE_URL: \"http://127.0.0.1:{commerce.http}\"\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "refs",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "api",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "env": "PORT"
+              }
+            ]
+          },
+          "commerce": {
+            "name": "commerce",
+            "kind": "run",
+            "run": "commerce",
+            "ports": [
+              {
+                "name": "http",
+                "default": 9000,
+                "env": "PORT"
+              }
+            ]
+          },
+          "web": {
+            "name": "web",
+            "kind": "task",
+            "task": "web",
+            "env": {
+              "API_URL": "http://127.0.0.1:{api.http}/{api.http}",
+              "COMMERCE_URL": "http://127.0.0.1:{commerce.http}"
+            },
+            "depends_on": [
+              "commerce",
+              "api"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "port scalar",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: 8080}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!int `8080` into manifest.portYAML"
+    },
+    {
+      "name": "ports list",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: [8080]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into map[string]manifest.portYAML"
+    },
+    {
+      "name": "ports many",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {z: {default: 3}, a: {default: 1, env: PORT}, m: {default: 2, probe: false}}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "ports": [
+              {
+                "name": "a",
+                "default": 1,
+                "env": "PORT"
+              },
+              {
+                "name": "m",
+                "default": 2,
+                "probe": false
+              },
+              {
+                "name": "z",
+                "default": 3
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "ports null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: null}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "probe target: debug",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {debug: {default: 9100, probe: false}, http: {default: 8080}}, health: {tcp: true, port: 'debug'}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": health.port \"debug\" has probe disabled"
+    },
+    {
+      "name": "probe target: http",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {debug: {default: 9100, probe: false}, http: {default: 8080}}, health: {tcp: true, port: 'http'}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "debug",
+                "default": 9100,
+                "probe": false
+              },
+              {
+                "name": "http",
+                "default": 8080
+              }
+            ],
+            "health": {
+              "tcp": true,
+              "port": "http"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "probe target: implicit",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {debug: {default: 9100, probe: false}, http: {default: 8080}}, health: {tcp: true, port: ''}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "debug",
+                "default": 9100,
+                "probe": false
+              },
+              {
+                "name": "http",
+                "default": 8080
+              }
+            ],
+            "health": {
+              "tcp": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "probe target: unknown",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {debug: {default: 9100, probe: false}, http: {default: 8080}}, health: {tcp: true, port: 'unknown'}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": health.port \"unknown\" is not a declared port"
+    },
+    {
+      "name": "probe: True",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: True}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "probe": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "probe: alias",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {debug: {default: 9000, probe: \u0026disabled false}, http: {default: 8080, probe: *disabled}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "debug",
+                "default": 9000,
+                "probe": false
+              },
+              {
+                "name": "http",
+                "default": 8080,
+                "probe": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "probe: anchored",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: \u0026disabled false}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "probe": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "probe: disabled",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: false}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "probe": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "probe: empty block",
+      "yaml": "version: 1\nname: probes\nservices:\n  api:\n    run: dev\n    ports:\n      http:\n        default: 8080\n        probe:\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: enabled",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: true}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080,
+                "probe": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "probe: map",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: {}}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: null",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: null}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: off",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: off}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: omitted",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080}}}}",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "probes",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "api": {
+            "name": "api",
+            "kind": "run",
+            "run": "dev",
+            "ports": [
+              {
+                "name": "http",
+                "default": 8080
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "probe: quoted",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: \"false\"}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: seq",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: []}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: tilde",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: ~}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "probe: zero",
+      "yaml": "version: 1\nname: probes\nservices: {api: {run: dev, ports: {http: {default: 8080, probe: 0}}}}",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"api\": port \"http\": probe must be a boolean"
+    },
+    {
+      "name": "profiles",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, profiles: [p, q]}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x",
+            "profiles": [
+              "p",
+              "q"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "run bool",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: true}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "true"
+          }
+        }
+      }
+    },
+    {
+      "name": "run float",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: 1.5}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "1.5"
+          }
+        }
+      }
+    },
+    {
+      "name": "run folded",
+      "yaml": "version: 1\nname: x\nservices:\n  a:\n    run: \u003e\n      echo 1\n      echo 2\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "echo 1 echo 2\n"
+          }
+        }
+      }
+    },
+    {
+      "name": "run map",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: {a: b}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "run multiline",
+      "yaml": "version: 1\nname: x\nservices:\n  a:\n    run: |\n      echo 1\n      echo 2\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "echo 1\necho 2\n"
+          }
+        }
+      }
+    },
+    {
+      "name": "run null",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: null}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got none)"
+    },
+    {
+      "name": "run number",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: 42}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "42"
+          }
+        }
+      }
+    },
+    {
+      "name": "run quoted",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: \"a \\\"b\\\" \\n c\"}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "a \"b\" \n c"
+          }
+        }
+      }
+    },
+    {
+      "name": "run seq",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: [a, b]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: cannot unmarshal !!seq into string"
+    },
+    {
+      "name": "scalar doc",
+      "yaml": "foo\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `foo` into manifest.fileYAML"
+    },
+    {
+      "name": "second doc ignored",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\n---\nfoo: [\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "seq doc",
+      "yaml": "[a]\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!seq into manifest.fileYAML"
+    },
+    {
+      "name": "service key bool",
+      "yaml": "version: 1\nname: x\nservices: {true: {run: y}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "true": {
+            "name": "true",
+            "kind": "run",
+            "run": "y"
+          }
+        }
+      }
+    },
+    {
+      "name": "service key float",
+      "yaml": "version: 1\nname: x\nservices: {1.5: {run: y}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "1.5": {
+            "name": "1.5",
+            "kind": "run",
+            "run": "y"
+          }
+        }
+      }
+    },
+    {
+      "name": "service key int",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}, 1: {run: y}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "1": {
+            "name": "1",
+            "kind": "run",
+            "run": "y"
+          },
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "service key map",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}, ? {k: v} : {run: y}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!map into string"
+    },
+    {
+      "name": "service key null",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}, ~: {run: y}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "service list",
+      "yaml": "version: 1\nname: x\nservices: {a: [x]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!seq into manifest.serviceYAML"
+    },
+    {
+      "name": "service null",
+      "yaml": "version: 1\nname: x\nservices: {a: null}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": exactly one of compose, task or run is required (got none)"
+    },
+    {
+      "name": "service null ok",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}, b: ~}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"b\": exactly one of compose, task or run is required (got none)"
+    },
+    {
+      "name": "service scalar",
+      "yaml": "version: 1\nname: x\nservices: {a: foo}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `foo` into manifest.serviceYAML"
+    },
+    {
+      "name": "services list",
+      "yaml": "version: 1\nname: x\nservices: [a]\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!seq into map[string]manifest.serviceYAML"
+    },
+    {
+      "name": "services null",
+      "yaml": "version: 1\nname: x\nservices:\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - no services declared"
+    },
+    {
+      "name": "services scalar",
+      "yaml": "version: 1\nname: x\nservices: a\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `a` into map[string]manifest.serviceYAML"
+    },
+    {
+      "name": "setup bad",
+      "yaml": "version: 1\nname: x\nsetup: {s: {}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - setup \"s\": exactly one of task or run is required"
+    },
+    {
+      "name": "setup both",
+      "yaml": "version: 1\nname: x\nsetup: {s: {run: a, task: b}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - setup \"s\": exactly one of task or run is required"
+    },
+    {
+      "name": "setup ok",
+      "yaml": "version: 1\nname: x\nsetup: {s: {run: a}, t: {task: b}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "setup": {
+          "s": {
+            "run": "a"
+          },
+          "t": {
+            "task": "b"
+          }
+        },
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "setup scalar",
+      "yaml": "version: 1\nname: x\nsetup: {s: foo}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!str `foo` into manifest.stepYAML"
+    },
+    {
+      "name": "syntax: anchor self",
+      "yaml": "version: 1\nname: x\nservices: \u0026s [*s]\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: cannot unmarshal !!seq into map[string]manifest.serviceYAML",
+      "syntax": true
+    },
+    {
+      "name": "syntax: bad alias",
+      "yaml": "version: 1\nname: *nope\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unknown anchor 'nope' referenced",
+      "syntax": true
+    },
+    {
+      "name": "syntax: bad escape",
+      "yaml": "version: 1\nname: \"\\q\"\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 2: found unknown escape character",
+      "syntax": true
+    },
+    {
+      "name": "syntax: bad indent",
+      "yaml": "version: 1\nname: x\n  bad: y\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 3: mapping values are not allowed in this context",
+      "syntax": true
+    },
+    {
+      "name": "syntax: colon in plain",
+      "yaml": "a: b: c\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: mapping values are not allowed in this context",
+      "syntax": true
+    },
+    {
+      "name": "syntax: dup anchor ok",
+      "yaml": "version: 1\nname: x\na: \u0026a 1\nb: \u0026a 2\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field a not found in type manifest.fileYAML\n  line 4: field b not found in type manifest.fileYAML",
+      "syntax": true
+    },
+    {
+      "name": "syntax: stray bracket",
+      "yaml": "version: 1\n]\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 1: did not find expected key",
+      "syntax": true
+    },
+    {
+      "name": "syntax: tab indent",
+      "yaml": "version: 1\nservices:\n\ta: {run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 3: found character that cannot start any token",
+      "syntax": true
+    },
+    {
+      "name": "syntax: unclosed flow",
+      "yaml": "version: 1\nservices: {a: {run: x}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 1: did not find expected ',' or '}'",
+      "syntax": true
+    },
+    {
+      "name": "syntax: unclosed seq",
+      "yaml": "a: [\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 1: did not find expected node content",
+      "syntax": true
+    },
+    {
+      "name": "syntax: unterminated quote",
+      "yaml": "version: 1\nname: \"x\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: line 2: found unexpected end of stream",
+      "syntax": true
+    },
+    {
+      "name": "tabs ok in flow",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\n\n\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "tagged",
+      "yaml": "version: !!int 1\nname: !!str x\nservices: {a: {run: !!str 5}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "5"
+          }
+        }
+      }
+    },
+    {
+      "name": "tagged bad",
+      "yaml": "version: !!int abc\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: cannot decode !!str `abc` as a !!int"
+    },
+    {
+      "name": "tagged binary",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: !!binary aGk=}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "hi"
+          }
+        }
+      }
+    },
+    {
+      "name": "tagged custom",
+      "yaml": "version: 1\nname: x\nservices: {a: {run: !custom x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "tagged float int",
+      "yaml": "version: !!float 1\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "tagged map",
+      "yaml": "version: 1\nname: x\nservices: !!map {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "tagged null",
+      "yaml": "version: 1\nname: !!null x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: cannot decode !!str `x` as a !!null"
+    },
+    {
+      "name": "tagged seq on map",
+      "yaml": "version: 1\nname: x\nservices: !!seq {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "tilde doc",
+      "yaml": "~\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)\n  - no services declared"
+    },
+    {
+      "name": "unicode",
+      "yaml": "version: 1\nname: x\nservices:\n  éè: {run: \"echo ü\"}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "éè": {
+            "name": "éè",
+            "kind": "run",
+            "run": "echo ü"
+          }
+        }
+      }
+    },
+    {
+      "name": "unknown and type",
+      "yaml": "version: [1]\nfoo: 1\nservices: {a: {run: [x]}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!seq into int\n  line 2: field foo not found in type manifest.fileYAML\n  line 3: cannot unmarshal !!seq into string"
+    },
+    {
+      "name": "unknown dep multiple",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, depends_on: [q, r]}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - service \"a\": depends_on references unknown service \"q\"\n  - service \"a\": depends_on references unknown service \"r\""
+    },
+    {
+      "name": "unknown deploy field",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {deploy: {bogus: 1, run: x}}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field bogus not found in type manifest.deployYAML"
+    },
+    {
+      "name": "unknown env field",
+      "yaml": "version: 1\nname: x\nenvs: {dev: {bogus: 1}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field bogus not found in type manifest.envYAML"
+    },
+    {
+      "name": "unknown health field",
+      "yaml": "version: 1\nname: x\nservices:\n  a: {run: x, ports: {h: {default: 1}}, health: {bogus: 1}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 4: field bogus not found in type manifest.healthYAML"
+    },
+    {
+      "name": "unknown service field",
+      "yaml": "version: 1\nname: x\nservices:\n  a:\n    run: x\n    bogus: 1\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 6: field bogus not found in type manifest.serviceYAML"
+    },
+    {
+      "name": "unknown setup field",
+      "yaml": "version: 1\nname: x\nsetup: {s: {bogus: 1}}\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field bogus not found in type manifest.stepYAML"
+    },
+    {
+      "name": "unknown top fields",
+      "yaml": "version: 1\nname: x\nfoo: 1\nbar: 2\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 3: field foo not found in type manifest.fileYAML\n  line 4: field bar not found in type manifest.fileYAML"
+    },
+    {
+      "name": "version float",
+      "yaml": "version: 1.5\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "version float int",
+      "yaml": "version: 1.0\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "version hex",
+      "yaml": "version: 0x1\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "version huge",
+      "yaml": "version: 99999999999999999999\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!float `9999999...` into int"
+    },
+    {
+      "name": "version list",
+      "yaml": "version: [1]\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!seq into int"
+    },
+    {
+      "name": "version long",
+      "yaml": "version: 12345678901234567\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 12345678901234567)"
+    },
+    {
+      "name": "version map",
+      "yaml": "version: {a: 1}\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!map into int"
+    },
+    {
+      "name": "version null",
+      "yaml": "version: null\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)"
+    },
+    {
+      "name": "version string",
+      "yaml": "version: \"1\"\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `1` into int"
+    },
+    {
+      "name": "version timestamp",
+      "yaml": "version: 2001-12-14\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!timestamp `2001-12-14` into int"
+    },
+    {
+      "name": "version underscores",
+      "yaml": "version: 0b1\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": true,
+      "project": {
+        "name": "x",
+        "root": "/code/x",
+        "default_env": "dev",
+        "envs": {
+          "dev": {
+            "name": "dev"
+          }
+        },
+        "services": {
+          "a": {
+            "name": "a",
+            "kind": "run",
+            "run": "x"
+          }
+        }
+      }
+    },
+    {
+      "name": "version yes",
+      "yaml": "version: yes\nname: x\nservices: {a: {run: x}}\n",
+      "root": "/code/x",
+      "ok": false,
+      "error": "parse rocket.yaml: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `yes` into int"
+    }
+  ]
+}

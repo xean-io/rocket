@@ -1,0 +1,25 @@
+[package]
+name = "rocket-app"
+description = "rocket use cases: up, down, status, summary, reconcile and gc on top of the port traits"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+rocket-domain = { path = "../rocket-domain" }
+serde.workspace = true
+thiserror.workspace = true
+time.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+rocket-manifest = { path = "../rocket-manifest" }
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

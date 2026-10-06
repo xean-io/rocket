@@ -1,0 +1,5 @@
+404
+{
+  "error": "not found: project \"nope\" is not registered",
+  "code": "not_found"
+}

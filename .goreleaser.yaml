@@ -3,29 +3,32 @@ version: 2
 
 project_name: rocket
 
-before:
-  hooks:
-    - go mod tidy
-
+# Rust build via cargo-zigbuild (no CGO-style toolchain juggling per target).
+# The runner must provide rustup/cargo, zig and cargo-zigbuild; GoReleaser only
+# runs `rustup target add` for each target below. See .github/workflows/release.yml.
+#
+# Windows is not shipped: the process adapter is a stub there and the bundled
+# SQLite C sources could not be cross-compiled without a Windows sysroot.
 builds:
   - id: rocket
-    main: ./cmd/rocket
+    builder: rust
     binary: rocket
-    env:
-      - CGO_ENABLED=0
-    goos: [darwin, linux, windows]
-    goarch: [amd64, arm64]
+    targets:
+      - x86_64-apple-darwin
+      - aarch64-apple-darwin
+      - x86_64-unknown-linux-gnu
+      - aarch64-unknown-linux-gnu
     flags:
-      - -trimpath
-    ldflags:
-      - -s -w -X main.version={{ .Version }}
+      - --release
+      - --locked
+      - -p=rocket-cli
+    env:
+      # Read by crates/rocket-cli/src/version.rs (`rocket version`).
+      - ROCKET_VERSION={{ .Version }}
 
 archives:
   - id: rocket
     formats: [tar.gz]
-    format_overrides:
-      - goos: windows
-        formats: [zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - LICENSE
@@ -42,10 +45,15 @@ changelog:
       - "^test:"
       - "^chore:"
 
+# Normal tags must be full releases: the desktop updater reads
+# /releases/latest/download/latest.json, and GitHub's "latest" skips drafts
+# and prereleases (tags with a suffix such as -rc.1 become prereleases).
 release:
   github:
     owner: xean-io
     name: rocket
+  draft: false
+  prerelease: auto
 
 # This repo doubles as its own Homebrew tap (Casks/ on main), so the release
 # workflow's GITHUB_TOKEN can publish the cask without a cross-repo secret:

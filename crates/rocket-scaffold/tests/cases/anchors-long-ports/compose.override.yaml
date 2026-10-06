@@ -1,0 +1,4 @@
+services:
+  a: {}
+  c:
+    ports: ["$C_PORT:1234"]

@@ -1,0 +1,11 @@
+200
+{
+  "ok": true,
+  "api": "v1",
+  "version": "0.1.2-0.20261006184518-c5d50a6f8dee",
+  "pid": 57371,
+  "started_at": "2026-10-06T18:50:28.665228Z",
+  "home": "/private/tmp/rkg29j56nvn/home",
+  "socket": "/private/tmp/rkg29j56nvn/home/rocketd.sock",
+  "http": "http://127.0.0.1:61697"
+}

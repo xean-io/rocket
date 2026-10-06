@@ -22,21 +22,97 @@ so nobody leaves orphan processes holding ports.
 brew tap xean-io/rocket https://github.com/xean-io/rocket
 brew install --cask xean-io/rocket/rocket
 
-# or with Go 1.26+ (no CGO)
-go install github.com/xean-io/rocket/cmd/rocket@latest
+# or build from source (Rust stable, see rust-toolchain.toml)
+git clone https://github.com/xean-io/rocket && cd rocket
+cargo install --locked --path crates/rocket-cli
 
 rocket daemon start          # optional: any command auto-starts the daemon
 ```
 
-Prebuilt archives for macOS, Linux and Windows (amd64/arm64) are on the
-[releases page](https://github.com/xean-io/rocket/releases).
+Prebuilt archives for macOS and Linux (amd64/arm64) are on the
+[releases page](https://github.com/xean-io/rocket/releases). Windows is not
+shipped yet.
+
+## Desktop app
+
+Rocket.app (Tauri + React, in `apps/desktop`) is a window, menu bar item and
+native menu over the same daemon API as the CLI. It bundles the `rocket` CLI as
+a sidecar, so it works on its own; an installed `rocket` on `PATH` (or
+`$ROCKET_BIN`) takes priority and the bundled one is the last fallback, so the
+CLI and the app share one daemon.
+
+```sh
+# Homebrew (macOS, universal)
+brew tap xean-io/rocket https://github.com/xean-io/rocket
+brew install --cask xean-io/rocket/rocket-app
+```
+
+Or download `Rocket_<version>_universal.dmg` from the
+[releases page](https://github.com/xean-io/rocket/releases) and drag Rocket to
+Applications. The app is ad-hoc signed, not notarized: the cask clears the
+quarantine flag; after a manual dmg install run
+`xattr -dr com.apple.quarantine /Applications/Rocket.app` (or right-click >
+Open). `rocket app` opens it from the terminal.
+
+Build from source (Rust, Node 24, pnpm 10):
+
+```sh
+cd apps/desktop
+pnpm install --frozen-lockfile
+pnpm tauri dev                          # hot-reloading dev app
+pnpm tauri build --bundles app,dmg      # target/release/bundle/{macos,dmg}
+```
+
+`pnpm tauri build` first runs `scripts/prepare-sidecar.mjs`, which compiles
+`rocket-cli` and places it in `src-tauri/binaries/` for Tauri's `externalBin`.
+
+### Updates
+
+The app updates itself. About 10 seconds after launch, and then every 6 hours
+while it runs, it reads `latest.json` from the newest GitHub release and, when
+a newer version exists, shows "Rocket X is available" with the release notes,
+**Install and Restart** and **Later** (Later hides that version until the next
+launch). The download is verified against the updater public key embedded in the
+app before anything is installed, then Rocket replaces itself and relaunches.
+Automatic checks are quiet (offline is silent) and can be turned off in
+Settings > Updates, which also has **Check now**. **Rocket > Check for
+Updates...** and the menu bar item do the same, and always answer. Debug builds
+never check automatically.
+
+An update also replaces the bundled `rocket` CLI. A daemon that is already
+running keeps the old version until you restart it; when the app sees that its
+daemon was started from the bundled CLI and is older, Settings shows "Daemon is
+running X; restart it to use Y" next to **Restart Daemon...**. Rocket never
+restarts the daemon on its own. Homebrew installs the cask with `auto_updates`,
+so `brew upgrade` leaves the app to update itself.
+
+For testing, `ROCKET_UPDATER_ENDPOINT` replaces the manifest URL (signatures are
+still verified; plain `http` is only accepted by builds that opt in through
+`plugins.updater.dangerousInsecureTransportProtocol`).
+`ROCKET_UPDATER_SMOKE=download` is a test-only hook: it checks, downloads and
+verifies the signature, logs the result and exits; it never installs.
+
+### Building and testing
+
+```sh
+cargo build -p rocket-cli                     # target/debug/rocket
+cargo test --workspace                        # unit tests: hermetic, no daemon or network
+cargo test -p rocket-cli -p rocket-daemon --features rocket-cli/e2e,rocket-daemon/e2e   # end-to-end: real daemon and processes (needs python3)
+```
+
+The desktop app is covered in [Desktop app](#desktop-app) below.
 
 ### Releasing
 
-Push a `vX.Y.Z` tag; the `release` workflow runs GoReleaser, publishes the
-GitHub release and commits the updated cask to `Casks/rocket.rb` on `main`
-(this repo is its own Homebrew tap). Dry run locally with
-`goreleaser release --snapshot --clean`.
+Push a `vX.Y.Z` tag; the `release` workflow builds the Rust binary for macOS and
+Linux with cargo-zigbuild, runs GoReleaser, publishes the GitHub release and
+commits the updated cask to `Casks/rocket.rb` on `main` (this repo is its own
+Homebrew tap). The same workflow then builds the universal desktop dmg, uploads
+it to the release as `Rocket_<version>_universal.dmg` and commits
+`Casks/rocket-app.rb`. It also uploads the signed updater archive
+(`Rocket.app.tar.gz` and its `.sig`) and the `latest.json` the app reads; the job
+fails fast without the `TAURI_SIGNING_PRIVATE_KEY` secret (see AGENTS.md). Dry run locally (needs rustup, zig and cargo-zigbuild) with
+`goreleaser release --snapshot --clean --skip=publish`.
 
 State lives in `~/.rocket` (override with `ROCKET_HOME`).
 
@@ -79,7 +155,7 @@ groups:
   all: ["*"]
 pipelines:                       # sequential steps, stop at the first failure
   test: [{ task: test }]
-  ci:   [{ task: lint }, { run: "go test ./..." }]
+  ci:   [{ task: lint }, { run: "pnpm test" }]
 ```
 
 `rocket schema` prints the JSON Schema. Compose projects are always named
@@ -172,7 +248,7 @@ Every command accepts `--json` and `-p <project name|path>` (default: the
 | `rocket projects add\|ls\|rm` | global project registry |
 | `rocket daemon start\|stop\|status\|run` | manage `rocketd` |
 | `rocket agent install [--target claude\|agents\|both] [--global] [--print]` | teach AI agents to use rocket |
-| `rocket app` | open Rocket.app (macOS) |
+| `rocket app` | open Rocket.app (macOS, `$ROCKET_APP` overrides the app name or path) |
 | `rocket schema` | JSON Schema of `rocket.yaml` |
 
 All job commands accept a positive Go duration in `--ttl`. The deadline starts
@@ -224,8 +300,8 @@ provide no creation evidence. Volumes remain intact when services stop.
 
 `rocket run --json` returns `{job, status, exit_code, duration_ms, log_path, tail}`
 (last 50 log lines). The daemon API (unix socket, plus a token-protected TCP
-listener for the macOS app) is documented in
-[`internal/adapters/api/README.md`](internal/adapters/api/README.md).
+listener for the desktop app) is documented in
+[`crates/rocket-api/README.md`](crates/rocket-api/README.md).
 
 ## AI agents
 
@@ -246,5 +322,5 @@ boundary.
 ## Platforms
 
 macOS and Linux are supported. Windows builds, but process supervision is not
-implemented yet (the process adapter returns "unsupported"). The native macOS
-app lives in `macos/` (in progress).
+implemented yet (the process adapter returns "unsupported"). The desktop app
+is built and released for macOS.

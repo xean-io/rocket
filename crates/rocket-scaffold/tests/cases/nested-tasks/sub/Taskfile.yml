@@ -1,0 +1,6 @@
+version: '3'
+includes:
+  deep: ./deep/Taskfile.yml
+tasks:
+  dev: echo sub dev
+  build: {desc: Build it}
