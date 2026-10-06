@@ -100,6 +100,12 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ## Progress
 
+- 2026-10-06: CI fixes on PR #1: clippy `manual_chunks` on Rust 1.99
+  (d2d0ad5); daemon e2e gated behind `e2e` feature (macOS runner http.server
+  slowness, same policy as Go) and script fixtures written from a child
+  process to avoid ETXTBSY (43c3421). Version bumped to 1.0.0 (be51bed) for
+  the v1.0.0 launch; tag after merge.
+
 - 2026-10-06: T7 done (delegated, Sonnet): tauri-plugin-updater 2.13.1,
   signed latest.json on GitHub releases, check 10s after launch + every 6h,
   menu/tray/Settings, stale-daemon notice. Local smoke: 0.1.1 app found
@@ -132,4 +138,4 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ## Next step
 
-User adds the `TAURI_SIGNING_PRIVATE_KEY` secret; merge xean-io/rocket#1.
+User adds the `TAURI_SIGNING_PRIVATE_KEY` secret; merge xean-io/rocket#1; tag `v1.0.0` on main.
