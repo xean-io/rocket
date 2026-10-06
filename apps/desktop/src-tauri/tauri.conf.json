@@ -46,5 +46,13 @@
       "minimumSystemVersion": "11.0",
       "signingIdentity": "-"
     }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQxRTQyQjM3NDY5MERDNEEKUldSSzNKQkdOeXZrMFl2R0JjNXBvVHlNQkJaamxzbUluTTluZkNTMUFkSUNCMXNDZXRrTFkxbHMK",
+      "endpoints": [
+        "https://github.com/xean-io/rocket/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

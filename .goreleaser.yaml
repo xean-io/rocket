@@ -45,10 +45,15 @@ changelog:
       - "^test:"
       - "^chore:"
 
+# Normal tags must be full releases: the desktop updater reads
+# /releases/latest/download/latest.json, and GitHub's "latest" skips drafts
+# and prereleases (tags with a suffix such as -rc.1 become prereleases).
 release:
   github:
     owner: xean-io
     name: rocket
+  draft: false
+  prerelease: auto
 
 # This repo doubles as its own Homebrew tap (Casks/ on main), so the release
 # workflow's GITHUB_TOKEN can publish the cask without a cross-repo secret:

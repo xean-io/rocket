@@ -7,6 +7,7 @@
 
 use crate::dto::{ConnectionStatus, DaemonDetails, FollowMessage};
 use crate::error::CommandError;
+use crate::update::{InstallEvent, StaleDaemon, UpdateStatus, UpdaterEnv};
 use rocket_domain::api::{
     AddProjectRequest, Conflict, DownRequest, DownResult, GcAction, GcResult, HealthInfo,
     JobLogsResult, JobOutcome, JobRequest, JobsResult, LogsResult, PortInfo, PortsResult,
@@ -75,6 +76,10 @@ pub fn render() -> String {
         ConnectionStatus,
         FollowMessage,
         DaemonDetails,
+        UpdateStatus,
+        InstallEvent,
+        UpdaterEnv,
+        StaleDaemon,
     );
     format!("{HEADER}{}", decls.join("\n"))
 }

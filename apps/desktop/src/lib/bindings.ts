@@ -215,3 +215,23 @@ rocket_bin: string | null, health: HealthInfo | null,
  * Non-fatal problems, e.g. `daemon.json` readable by other users.
  */
 warnings: Array<string>, };
+
+export type UpdateStatus = { available: boolean, 
+/**
+ * The announced version; `null` when up to date.
+ */
+version: string | null, current_version: string, notes: string | null, 
+/**
+ * RFC3339 publish date, when the manifest carries one.
+ */
+date: string | null, };
+
+export type InstallEvent = { "event": "started", content_length: number | null, } | { "event": "progress", chunk: number, } | { "event": "finished" };
+
+export type UpdaterEnv = { current_version: string, 
+/**
+ * `false` in debug builds: no automatic checks while developing.
+ */
+auto_check: boolean, };
+
+export type StaleDaemon = { running: string, bundled: string, };

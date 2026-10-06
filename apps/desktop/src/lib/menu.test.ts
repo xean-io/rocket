@@ -36,6 +36,7 @@ describe("action ids", () => {
       [
         "app.add_project",
         "app.settings",
+        "app.check_updates",
         "services.up",
         "services.restart",
         "services.stop",

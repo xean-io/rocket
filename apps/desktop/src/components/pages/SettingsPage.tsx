@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { FolderOpen, Loader2, PlugZap, RotateCcw, Trash2, TriangleAlert } from "lucide-react";
+import { Download, FolderOpen, Loader2, PlugZap, RefreshCw, RotateCcw, Trash2, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MetaLabel } from "@/components/MetaLabel";
@@ -18,12 +18,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useReconnect } from "@/hooks/useConnectionActions";
 import { useGc } from "@/hooks/useGc";
+import { useStaleDaemon, useUpdaterEnv } from "@/hooks/useUpdates";
 import { queryKeys } from "@/lib/cache";
 import { describeError } from "@/lib/errors";
 import { useLive } from "@/lib/live";
 import { rocket } from "@/lib/rocket";
+import { checkNow, installNow, useUpdateStore } from "@/lib/updateRuntime";
+import { staleDaemonMessage } from "@/lib/updates";
 import { cn } from "@/lib/utils";
 
 function Row({ label, value, mono = true }: { label: string; value?: React.ReactNode; mono?: boolean }) {
@@ -64,6 +68,9 @@ export function SettingsPage() {
   const { reconnect, pending: reconnecting } = useReconnect();
   const gc = useGc();
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const stale = useStaleDaemon().data;
+  const env = useUpdaterEnv().data;
+  const updates = useUpdateStore();
 
   const restart = useMutation({
     mutationFn: rocket.restartDaemon,
@@ -109,6 +116,49 @@ export function SettingsPage() {
             {d && !d.running && connection.state !== "offline" && (
               <Row label="Running" mono={false} value="Not running" />
             )}
+            {stale && (
+              <div role="status" className="selectable flex flex-wrap items-center gap-2 py-1.5 text-sm text-status-warn">
+                <TriangleAlert className="size-4 shrink-0" aria-hidden />
+                <span>{staleDaemonMessage(stale)}</span>
+                <Button size="sm" variant="outline" onClick={() => setConfirmRestart(true)} disabled={restart.isPending}>
+                  <RotateCcw /> Restart Daemon…
+                </Button>
+              </div>
+            )}
+          </Group>
+
+          <Group title="Updates">
+            <Row label="Version" value={env?.current_version} />
+            <div className="grid grid-cols-[8.5rem_1fr] items-center gap-x-4 py-1.5">
+              <MetaLabel>Automatic</MetaLabel>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <Switch
+                  size="sm"
+                  checked={updates.autoCheck}
+                  onCheckedChange={(on) => updates.setAutoCheck(on)}
+                  aria-label="Check for updates automatically"
+                />
+                Check for updates automatically
+              </label>
+            </div>
+            <Row
+              label="Last checked"
+              mono={false}
+              value={updates.lastChecked ? new Date(updates.lastChecked).toLocaleString() : "Never"}
+            />
+            {updates.available?.version && (
+              <Row label="Available" value={`${updates.available.version} (you have ${updates.available.current_version})`} />
+            )}
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => void checkNow()} disabled={updates.checking || updates.installing}>
+                {updates.checking ? <Loader2 className="animate-spin" /> : <RefreshCw />} Check now
+              </Button>
+              {updates.available && (
+                <Button size="sm" onClick={() => void installNow(updates.available!)} disabled={updates.installing}>
+                  {updates.installing ? <Loader2 className="animate-spin" /> : <Download />} Install and Restart
+                </Button>
+              )}
+            </div>
           </Group>
 
           <Group title="Location">

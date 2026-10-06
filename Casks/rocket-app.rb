@@ -19,6 +19,10 @@ cask "rocket-app" do
     skip "Auto-generated on release."
   end
 
+  # The app updates itself (Tauri updater): `brew upgrade` leaves it alone
+  # unless run with --greedy.
+  auto_updates true
+
   depends_on macos: ">= :big_sur"
 
   app "Rocket.app"

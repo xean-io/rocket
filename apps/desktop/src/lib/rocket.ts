@@ -10,6 +10,7 @@ import type {
   FollowMessage,
   GcResult,
   HealthInfo,
+  InstallEvent,
   Job,
   JobLogsResult,
   JobRequest,
@@ -19,10 +20,13 @@ import type {
   ProjectRef,
   ProjectsResult,
   RemovedProject,
+  StaleDaemon,
   StatusResult,
   Summary,
   UpRequest,
   UpResult,
+  UpdateStatus,
+  UpdaterEnv,
 } from "./bindings";
 
 /** Event names emitted by the backend supervisor. */
@@ -103,7 +107,22 @@ export const rocket = {
   reconnect: () => call<void>("reconnect"),
   /** Debug builds only: the route named by `ROCKET_INITIAL_ROUTE`. */
   initialRoute: () => call<string | null>("initial_route"),
+  updaterEnv: () => call<UpdaterEnv>("updater_env"),
+  /** Looks for a newer signed release; remembers it for `installUpdate`. */
+  checkUpdate: () => call<UpdateStatus>("check_update"),
+  /** The running daemon, when it is older than the bundled CLI it started from. */
+  daemonStale: () => call<StaleDaemon | null>("daemon_stale"),
 };
+
+/**
+ * Downloads, verifies and installs the update found by the last check, then the
+ * app relaunches: on success the promise never settles in a live window.
+ */
+export function installUpdate(onEvent: (e: InstallEvent) => void): Promise<void> {
+  const channel = new Channel<InstallEvent>();
+  channel.onmessage = onEvent;
+  return call<void>("install_update", { onEvent: channel });
+}
 
 /** Stops a log follow; safe to call more than once. */
 export type StopFollow = () => Promise<void>;

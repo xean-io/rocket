@@ -17,6 +17,8 @@ mod state;
 mod supervisor;
 #[cfg(desktop)]
 mod tray;
+#[cfg(desktop)]
+mod update;
 mod window;
 
 use state::AppState;
@@ -34,11 +36,18 @@ pub fn run() {
     let mut builder = tauri::Builder::default();
     #[cfg(desktop)]
     {
+        // The smoke hook must neither hand off to a running Rocket nor touch
+        // its saved window state.
+        if !update::smoke_requested() {
+            builder = builder
+                .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+                    window::show_main(app);
+                }))
+                .plugin(tauri_plugin_window_state::Builder::default().build());
+        }
         builder = builder
-            .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-                window::show_main(app);
-            }))
-            .plugin(tauri_plugin_window_state::Builder::default().build());
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_process::init());
     }
 
     builder
@@ -50,6 +59,11 @@ pub fn run() {
             app.manage(AppState::new(paths)?);
             #[cfg(desktop)]
             {
+                app.manage(update::UpdateState::default());
+                // Test-only: check + download + verify the signature, then exit.
+                if update::smoke_requested() {
+                    update::smoke(app.handle().clone());
+                }
                 app.set_menu(menu::build(app.handle())?)?;
                 tray::init(app.handle())?;
             }
@@ -92,6 +106,14 @@ pub fn run() {
             commands::follow_service_logs,
             commands::stop_follow,
             commands::initial_route,
+            #[cfg(desktop)]
+            update::updater_env,
+            #[cfg(desktop)]
+            update::check_update,
+            #[cfg(desktop)]
+            update::install_update,
+            #[cfg(desktop)]
+            update::daemon_stale,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the Rocket desktop app")

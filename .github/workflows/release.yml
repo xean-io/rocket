@@ -55,14 +55,31 @@ jobs:
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
-      - name: Build the universal app and dmg
+      # Updates are signed with the Tauri updater key (public half is in
+      # tauri.conf.json). Without the secret the build would ship no updater
+      # artifacts, so stop before spending runner minutes.
+      - name: Require the updater signing key
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error title=Missing secret::Add the TAURI_SIGNING_PRIVATE_KEY repository secret (see AGENTS.md, Updater signing key) and re-run this job."
+            exit 1
+          fi
+      # tauri.release.conf.json turns on bundle.createUpdaterArtifacts, which
+      # needs the private key; local `pnpm tauri build` stays key-free.
+      - name: Build the universal app, dmg and signed updater archive
         working-directory: apps/desktop
         env:
           # Stamped into the bundled CLI (`rocket version`) by prepare-sidecar.mjs.
           ROCKET_VERSION: ${{ steps.v.outputs.version }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          # May be empty (the key was generated without a password).
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           pnpm install --frozen-lockfile
           pnpm tauri build --target universal-apple-darwin --bundles app,dmg \
+            --config src-tauri/tauri.release.conf.json \
             --config '{"version":"${{ steps.v.outputs.version }}"}'
       - name: Upload the dmg to the release
         id: dmg
@@ -71,6 +88,23 @@ jobs:
           test -f "$dmg"
           gh release upload "$GITHUB_REF_NAME" "$dmg" --clobber
           echo "sha256=$(shasum -a 256 "$dmg" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      # The updater downloads Rocket.app.tar.gz and checks it against the
+      # signature in latest.json; GitHub serves the newest release's copy at
+      # /releases/latest/download/latest.json.
+      - name: Upload the updater archive, signature and latest.json
+        run: |
+          bundle="target/universal-apple-darwin/release/bundle/macos"
+          test -f "$bundle/Rocket.app.tar.gz"
+          test -f "$bundle/Rocket.app.tar.gz.sig"
+          gh release view "$GITHUB_REF_NAME" --json body --jq .body > "$RUNNER_TEMP/notes.md" || : > "$RUNNER_TEMP/notes.md"
+          node apps/desktop/scripts/updater-manifest.mjs \
+            --version "$GITHUB_REF_NAME" \
+            --url "https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/Rocket.app.tar.gz" \
+            --sig-file "$bundle/Rocket.app.tar.gz.sig" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            --out "$RUNNER_TEMP/latest.json"
+          gh release upload "$GITHUB_REF_NAME" \
+            "$bundle/Rocket.app.tar.gz" "$bundle/Rocket.app.tar.gz.sig" "$RUNNER_TEMP/latest.json" --clobber
       # This repo is its own tap: rewrite Casks/rocket-app.rb on main, the way
       # GoReleaser commits Casks/rocket.rb (same GITHUB_TOKEN, contents: write).
       - name: Update Casks/rocket-app.rb on main

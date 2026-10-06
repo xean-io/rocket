@@ -4,6 +4,7 @@
 //! whenever the supervisor sees a state event or the connection changes.
 
 use crate::dto::ConnectionStatus;
+use crate::menu::MenuAction;
 use crate::state::AppState;
 use rocket_domain::api::{DownRequest, UpRequest};
 use rocket_domain::{DEFAULT_OWNER, ProjectRef, Run};
@@ -108,6 +109,7 @@ pub enum TrayCommand {
     Up(String),
     Down(String),
     CollectGarbage,
+    CheckUpdates,
     Reconnect,
     Quit,
 }
@@ -120,6 +122,7 @@ impl TrayCommand {
             Self::Up(p) => format!("tray.up:{p}"),
             Self::Down(p) => format!("tray.down:{p}"),
             Self::CollectGarbage => "tray.gc".to_owned(),
+            Self::CheckUpdates => "tray.updates".to_owned(),
             Self::Reconnect => "tray.reconnect".to_owned(),
             Self::Quit => "tray.quit".to_owned(),
         }
@@ -129,6 +132,7 @@ impl TrayCommand {
         match id {
             "tray.open" => return Some(Self::OpenRocket),
             "tray.gc" => return Some(Self::CollectGarbage),
+            "tray.updates" => return Some(Self::CheckUpdates),
             "tray.reconnect" => return Some(Self::Reconnect),
             "tray.quit" => return Some(Self::Quit),
             _ => {}
@@ -186,10 +190,14 @@ fn build_menu(app: &AppHandle, s: &TraySummary) -> tauri::Result<Menu<Wry>> {
     let gc = MenuItemBuilder::with_id(TrayCommand::CollectGarbage.id(), "Collect Garbage")
         .enabled(s.connected)
         .build(app)?;
+    let updates =
+        MenuItemBuilder::with_id(TrayCommand::CheckUpdates.id(), "Check for Updates\u{2026}")
+            .build(app)?;
     let quit = MenuItemBuilder::with_id(TrayCommand::Quit.id(), "Quit Rocket").build(app)?;
     menu.separator()
         .item(&open)
         .item(&gc)
+        .item(&updates)
         .separator()
         .item(&quit)
         .build()
@@ -263,6 +271,11 @@ fn run_command(app: &AppHandle, cmd: TrayCommand) {
         TrayCommand::OpenProject(name) => {
             crate::window::show_main(app);
             let _ = app.emit(OPEN_PROJECT_EVENT, name);
+        }
+        // Same path as the app-menu item: the frontend runs the manual check.
+        TrayCommand::CheckUpdates => {
+            crate::window::show_main(app);
+            let _ = app.emit(crate::menu::EVENT, MenuAction::CheckUpdates.id());
         }
         TrayCommand::Quit => app.exit(0),
         TrayCommand::Reconnect => app.state::<AppState>().reconnect.notify_one(),
@@ -433,6 +446,7 @@ mod tests {
             TrayCommand::Up("my app".into()),
             TrayCommand::Down("x".into()),
             TrayCommand::CollectGarbage,
+            TrayCommand::CheckUpdates,
             TrayCommand::Reconnect,
             TrayCommand::Quit,
         ];

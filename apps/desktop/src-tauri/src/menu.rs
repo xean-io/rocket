@@ -16,6 +16,7 @@ pub const EVENT: &str = "rocket://menu";
 pub enum MenuAction {
     AddProject,
     Settings,
+    CheckUpdates,
     Up,
     Restart,
     Stop,
@@ -29,9 +30,10 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [Self; 12] = [
+    pub const ALL: [Self; 13] = [
         Self::AddProject,
         Self::Settings,
+        Self::CheckUpdates,
         Self::Up,
         Self::Restart,
         Self::Stop,
@@ -49,6 +51,7 @@ impl MenuAction {
         match self {
             Self::AddProject => "app.add_project",
             Self::Settings => "app.settings",
+            Self::CheckUpdates => "app.check_updates",
             Self::Up => "services.up",
             Self::Restart => "services.restart",
             Self::Stop => "services.stop",
@@ -70,6 +73,7 @@ impl MenuAction {
         match self {
             Self::AddProject => "Add Project\u{2026}",
             Self::Settings => "Settings\u{2026}",
+            Self::CheckUpdates => "Check for Updates\u{2026}",
             Self::Up => "Up",
             Self::Restart => "Restart",
             Self::Stop => "Stop",
@@ -93,7 +97,7 @@ impl MenuAction {
             Self::Stop => Some("CmdOrCtrl+."),
             Self::Logs => Some("CmdOrCtrl+L"),
             Self::Refresh => Some("CmdOrCtrl+Shift+R"),
-            Self::CollectGarbage => None,
+            Self::CollectGarbage | Self::CheckUpdates => None,
             Self::ShowProjects => Some("CmdOrCtrl+1"),
             Self::ShowPorts => Some("CmdOrCtrl+2"),
             Self::ShowJobs => Some("CmdOrCtrl+3"),
@@ -114,6 +118,7 @@ fn item(app: &AppHandle, action: MenuAction) -> tauri::Result<tauri::menu::MenuI
 pub fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let add_project = item(app, MenuAction::AddProject)?;
     let settings = item(app, MenuAction::Settings)?;
+    let check_updates = item(app, MenuAction::CheckUpdates)?;
 
     let mut bar = MenuBuilder::new(app);
 
@@ -122,6 +127,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
         let name = app.package_info().name.clone();
         let app_menu = SubmenuBuilder::new(app, name)
             .about(None)
+            .item(&check_updates)
             .separator()
             .item(&settings)
             .separator()
@@ -141,7 +147,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let file = if cfg!(target_os = "macos") {
         file
     } else {
-        file.item(&settings)
+        file.item(&settings).item(&check_updates)
     };
     let file = file.separator().close_window().build()?;
 
@@ -210,6 +216,15 @@ mod tests {
     }
 
     #[test]
+    fn check_updates_has_a_stable_id_and_label() {
+        assert_eq!(MenuAction::CheckUpdates.id(), "app.check_updates");
+        assert_eq!(
+            MenuAction::CheckUpdates.label(),
+            "Check for Updates\u{2026}"
+        );
+    }
+
+    #[test]
     fn unknown_and_predefined_ids_are_ignored() {
         assert_eq!(MenuAction::from_id("copy"), None);
         assert_eq!(MenuAction::from_id("tray.open"), None);
@@ -237,5 +252,6 @@ mod tests {
         assert_eq!(MenuAction::Refresh.accelerator(), Some("CmdOrCtrl+Shift+R"));
         assert_eq!(MenuAction::ShowOwners.accelerator(), Some("CmdOrCtrl+4"));
         assert_eq!(MenuAction::CollectGarbage.accelerator(), None);
+        assert_eq!(MenuAction::CheckUpdates.accelerator(), None);
     }
 }

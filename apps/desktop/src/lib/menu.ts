@@ -7,6 +7,7 @@ export const MENU_EVENT = "rocket://menu";
 export const MENU_ACTIONS = [
   "app.add_project",
   "app.settings",
+  "app.check_updates",
   "services.up",
   "services.restart",
   "services.stop",

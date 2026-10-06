@@ -66,6 +66,32 @@ pnpm tauri build --bundles app,dmg      # target/release/bundle/{macos,dmg}
 `pnpm tauri build` first runs `scripts/prepare-sidecar.mjs`, which compiles
 `rocket-cli` and places it in `src-tauri/binaries/` for Tauri's `externalBin`.
 
+### Updates
+
+The app updates itself. About 10 seconds after launch, and then every 6 hours
+while it runs, it reads `latest.json` from the newest GitHub release and, when
+a newer version exists, shows "Rocket X is available" with the release notes,
+**Install and Restart** and **Later** (Later hides that version until the next
+launch). The download is verified against the updater public key embedded in the
+app before anything is installed, then Rocket replaces itself and relaunches.
+Automatic checks are quiet (offline is silent) and can be turned off in
+Settings > Updates, which also has **Check now**. **Rocket > Check for
+Updates...** and the menu bar item do the same, and always answer. Debug builds
+never check automatically.
+
+An update also replaces the bundled `rocket` CLI. A daemon that is already
+running keeps the old version until you restart it; when the app sees that its
+daemon was started from the bundled CLI and is older, Settings shows "Daemon is
+running X; restart it to use Y" next to **Restart Daemon...**. Rocket never
+restarts the daemon on its own. Homebrew installs the cask with `auto_updates`,
+so `brew upgrade` leaves the app to update itself.
+
+For testing, `ROCKET_UPDATER_ENDPOINT` replaces the manifest URL (signatures are
+still verified; plain `http` is only accepted by builds that opt in through
+`plugins.updater.dangerousInsecureTransportProtocol`).
+`ROCKET_UPDATER_SMOKE=download` is a test-only hook: it checks, downloads and
+verifies the signature, logs the result and exits; it never installs.
+
 ### Building and testing
 
 ```sh
@@ -83,7 +109,9 @@ Linux with cargo-zigbuild, runs GoReleaser, publishes the GitHub release and
 commits the updated cask to `Casks/rocket.rb` on `main` (this repo is its own
 Homebrew tap). The same workflow then builds the universal desktop dmg, uploads
 it to the release as `Rocket_<version>_universal.dmg` and commits
-`Casks/rocket-app.rb`. Dry run locally (needs rustup, zig and cargo-zigbuild) with
+`Casks/rocket-app.rb`. It also uploads the signed updater archive
+(`Rocket.app.tar.gz` and its `.sig`) and the `latest.json` the app reads; the job
+fails fast without the `TAURI_SIGNING_PRIVATE_KEY` secret (see AGENTS.md). Dry run locally (needs rustup, zig and cargo-zigbuild) with
 `goreleaser release --snapshot --clean --skip=publish`.
 
 State lives in `~/.rocket` (override with `ROCKET_HOME`).

@@ -45,6 +45,27 @@ Package it with `pnpm tauri build --bundles app,dmg`.
 | `Casks/` | Homebrew casks: `rocket.rb` (CLI, GoReleaser) and `rocket-app.rb` (desktop dmg, release workflow) |
 | `testdata/` | fixtures only (`fixture/` for e2e, `init/` for `rocket init`, `manifests/`) |
 
+## Updater signing key
+
+The desktop auto-updater only installs archives signed with our key. The public
+half is `plugins.updater.pubkey` in `apps/desktop/src-tauri/tauri.conf.json`;
+the private half never goes in the repo, logs or chat.
+
+- CI secrets (repository settings > Secrets and variables > Actions):
+  `TAURI_SIGNING_PRIVATE_KEY` (the content of the private key file) and
+  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (may be empty or unset when the key has no
+  password). The `desktop` job in `.github/workflows/release.yml` fails clearly
+  when the key is missing.
+- Updater artifacts are only built in CI: `src-tauri/tauri.release.conf.json`
+  (`bundle.createUpdaterArtifacts`) is passed with `--config`, so a local
+  `pnpm tauri build` needs no key.
+- Regenerate: `pnpm tauri signer generate -w ~/.tauri/rocket-updater.key`, put the
+  new public key in `tauri.conf.json`, update the secrets, release. Installed apps
+  trust the old public key, so apps built with the old key cannot update to a
+  release signed with the new one: they need a manual reinstall.
+- Local signing, only inside one command:
+  `TAURI_SIGNING_PRIVATE_KEY="$(<~/.tauri/rocket-updater.key)" TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" pnpm tauri build --config src-tauri/tauri.release.conf.json`.
+
 ## Rules
 
 - Test first for app/domain logic: write the failing test, then the code.

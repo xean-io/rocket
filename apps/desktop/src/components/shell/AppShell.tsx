@@ -1,4 +1,6 @@
 import { Plus, Rocket } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -18,9 +20,11 @@ import { useAddProject } from "@/hooks/useAddProject";
 import { useRefresh } from "@/hooks/useConnectionActions";
 import { useRocketEvents } from "@/hooks/useRocketEvents";
 import { useGc } from "@/hooks/useGc";
+import { useStaleDaemon, useUpdates } from "@/hooks/useUpdates";
 import { useMenuActions } from "@/hooks/useMenuActions";
 import { useBackendNavigation } from "@/hooks/useTrayNavigation";
 import { useIsOnline, useProjectNames, useProjects } from "@/lib/queries";
+import { staleDaemonMessage } from "@/lib/updates";
 
 function IndexRoute() {
   const { names, loading } = useProjectNames();
@@ -87,6 +91,23 @@ function GlobalMenuActions() {
   return null;
 }
 
+/** After an update the old daemon keeps running; point at Settings, never restart it. */
+function StaleDaemonToast() {
+  const navigate = useNavigate();
+  const stale = useStaleDaemon().data;
+  const running = stale?.running;
+  const bundled = stale?.bundled;
+  useEffect(() => {
+    if (!running || !bundled) return;
+    toast.info(staleDaemonMessage({ running, bundled }), {
+      id: "daemon-stale",
+      duration: 15_000,
+      action: { label: "Settings", onClick: () => void navigate("/settings") },
+    });
+  }, [running, bundled, navigate]);
+  return null;
+}
+
 function Content() {
   const online = useIsOnline();
   const projects = useProjects();
@@ -115,9 +136,11 @@ function Content() {
 /** Window chrome: sidebar, routed main pane, connection strip, global dialogs. */
 export function AppShell() {
   useRocketEvents();
+  useUpdates();
   return (
     <SidebarProvider className="h-svh min-h-0 overflow-hidden" style={{ "--sidebar-width": "15rem" } as React.CSSProperties}>
       <GlobalMenuActions />
+      <StaleDaemonToast />
       <AppSidebar />
       <SidebarInset className="xean-backdrop min-h-0 min-w-0 overflow-hidden">
         <div className="min-h-0 flex-1">

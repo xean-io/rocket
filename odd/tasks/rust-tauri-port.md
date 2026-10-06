@@ -72,6 +72,11 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 - [x] T3 Project detail, services table, inspector, logs.
 - [x] T4 Ports, Jobs (log follow, stale-snapshot guard), Owners.
 - [x] T5 Settings, tray, deploy confirmation, app menus.
+- [x] T7 Auto-updater: tauri-plugin-updater with signed GitHub-release
+  `latest.json`, check on launch + periodic + menu, install & relaunch,
+  release workflow emits signed updater artifacts, cask `auto_updates true`.
+  Requested 2026-10-06 after PR #1 opened; key at `~/.tauri/rocket-updater.key`
+  (not in repo; user sets CI secret).
 - [x] T6 Packaging (.app/.dmg), cask, remove `macos/`.
 
 ## Route log
@@ -94,6 +99,12 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 | T6 | delegated (Sonnet) + parent README fix | sidecar, dmg release, app cask, macos/ removal | 4c94bdf | RDD off |
 
 ## Progress
+
+- 2026-10-06: T7 done (delegated, Sonnet): tauri-plugin-updater 2.13.1,
+  signed latest.json on GitHub releases, check 10s after launch + every 6h,
+  menu/tray/Settings, stale-daemon notice. Local smoke: 0.1.1 app found
+  0.1.99, signature verified; tampered sig and archive rejected. Pending: user
+  adds `TAURI_SIGNING_PRIVATE_KEY` repo secret; real release not run.
 
 - 2026-10-06: All tasks done. Rust e2e suite (`cargo test -p rocket-cli
   --features e2e`) 7/7 green with mutation check; goreleaser snapshot built
@@ -121,4 +132,4 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ## Next step
 
-User decision: push `feat/rust-tauri-port` and open the single PR to `main`.
+User adds the `TAURI_SIGNING_PRIVATE_KEY` secret; merge xean-io/rocket#1.
