@@ -41,7 +41,9 @@ import { useRefresh } from "@/hooks/useConnectionActions";
 import type { Run } from "@/lib/bindings";
 import { queryKeys } from "@/lib/cache";
 import { describeError } from "@/lib/errors";
-import { useIsOnline, useProjectNames, useProjects, useRuns } from "@/lib/queries";
+import { runningJobs } from "@/lib/jobs";
+import { ownerCount as countOwners } from "@/lib/owners";
+import { useIsOnline, useJobs, useProjectNames, useProjects, useRuns } from "@/lib/queries";
 import { rocket } from "@/lib/rocket";
 import { isActive, statusCounts, type Tone } from "@/lib/status";
 import { cn } from "@/lib/utils";
@@ -81,10 +83,10 @@ export function AppSidebar() {
     for (const r of runs.data?.services ?? []) map.set(r.project, [...(map.get(r.project) ?? []), r]);
     return map;
   }, [runs.data]);
-  const ownerCount = useMemo(
-    () => new Set((runs.data?.services ?? []).filter((r) => isActive(r.state)).map((r) => r.owner || "user")).size,
-    [runs.data],
-  );
+  const { jobs } = useJobs();
+  const ownerCount = useMemo(() => countOwners(runs.data?.services ?? [], jobs), [runs.data, jobs]);
+  const jobsRunning = useMemo(() => runningJobs(jobs).length, [jobs]);
+  const badge = (to: string) => (to === "/owners" ? ownerCount : to === "/jobs" ? jobsRunning : 0);
   const pathOf = (name: string) => projects.data?.projects.find((p) => p.name === name)?.path;
 
   const remove = useMutation({
@@ -191,9 +193,12 @@ export function AppSidebar() {
                     <Icon className={cn(pathname === to ? "text-ink" : "text-violet")} />
                     <span>{label}</span>
                   </SidebarMenuButton>
-                  {to === "/owners" && ownerCount > 0 && (
-                    <SidebarMenuBadge className="font-mono text-[0.7rem] text-secondary-ink top-1.5">
-                      {ownerCount}
+                  {badge(to) > 0 && (
+                    <SidebarMenuBadge
+                      aria-label={`${badge(to)} ${to === "/jobs" ? "running" : "active"}`}
+                      className="font-mono text-[0.7rem] text-secondary-ink top-1.5"
+                    >
+                      {badge(to)}
                     </SidebarMenuBadge>
                   )}
                 </SidebarMenuItem>

@@ -145,6 +145,42 @@ pub async fn job_logs(
     Ok(state.client().await.job_logs(&id, tail).await?)
 }
 
+/// Problems with `daemon.json` worth showing in Settings: the file holds the
+/// TCP token, so anything looser than 0600 is reported (unix only).
+fn config_warnings(daemon_json: &std::path::Path) -> Vec<String> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(meta) = std::fs::metadata(daemon_json) {
+            let mode = meta.permissions().mode() & 0o777;
+            if mode & 0o077 != 0 {
+                return vec![format!(
+                    "{} has mode {mode:04o}; expected 0600 (the token is readable by others)",
+                    daemon_json.display()
+                )];
+            }
+        }
+    }
+    let _ = daemon_json;
+    Vec::new()
+}
+
+/// Debug builds only: lets visual checks open the app on a given route
+/// (`ROCKET_INITIAL_ROUTE=/jobs`) without simulating keystrokes.
+#[tauri::command]
+pub fn initial_route() -> Option<String> {
+    #[cfg(debug_assertions)]
+    {
+        std::env::var("ROCKET_INITIAL_ROUTE")
+            .ok()
+            .filter(|r| r.starts_with('/'))
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        None
+    }
+}
+
 async fn details(state: &AppState) -> DaemonDetails {
     let health = state.client().await.is_running().await;
     let info = DaemonInfo::load(&state.paths.daemon_json).ok();
@@ -160,6 +196,7 @@ async fn details(state: &AppState) -> DaemonDetails {
         daemon_json: s(&p.daemon_json),
         rocket_bin: find_rocket_bin(info.as_ref()).map(|b| b.display().to_string()),
         health,
+        warnings: config_warnings(&p.daemon_json),
     }
 }
 

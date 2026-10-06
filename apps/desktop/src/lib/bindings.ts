@@ -210,4 +210,8 @@ export type DaemonDetails = { running: boolean, home: string, socket: string, db
 /**
  * The rocket binary the app would launch, when one is found.
  */
-rocket_bin: string | null, health: HealthInfo | null, };
+rocket_bin: string | null, health: HealthInfo | null, 
+/**
+ * Non-fatal problems, e.g. `daemon.json` readable by other users.
+ */
+warnings: Array<string>, };

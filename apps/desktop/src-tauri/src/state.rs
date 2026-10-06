@@ -17,6 +17,8 @@ pub struct AppState {
     pub ensure_lock: tokio::sync::Mutex<()>,
     /// Wakes the supervisor: skip the backoff wait or drop the open stream.
     pub reconnect: Notify,
+    /// Wakes the tray refresher (debounced recomputation of the tray menu).
+    pub tray: Notify,
     pub follows: Follows,
 }
 
@@ -29,6 +31,7 @@ impl AppState {
             status: RwLock::new(ConnectionStatus::Connecting),
             ensure_lock: tokio::sync::Mutex::new(()),
             reconnect: Notify::new(),
+            tray: Notify::new(),
             follows: Arc::default(),
         })
     }

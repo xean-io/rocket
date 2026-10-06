@@ -1,10 +1,11 @@
 // react-query hooks over the daemon snapshots. Queries wait for `online`;
 // event-applied cache patches are protected from older in-flight responses.
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Run, Summary } from "./bindings";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Conflict, Run, Summary } from "./bindings";
 import { queryKeys } from "./cache";
 import { useLive } from "./live";
 import { RocketError, rocket } from "./rocket";
+import { fetchJobsGuarded } from "./jobs";
 import { guardedFetch } from "./snapshots";
 
 export const useIsOnline = () => useLive((s) => s.connection.state === "online");
@@ -47,6 +48,45 @@ export function useProjectSummary(project: string | undefined) {
     queryFn: () => guardedFetch(qc, key, () => fetchSummary(project as string)),
     enabled: online && !!project,
   });
+}
+
+/** Leased ports across projects (`GET /v1/ports`); events invalidate it. */
+export function usePorts() {
+  const online = useIsOnline();
+  return useQuery({ queryKey: queryKeys.ports, queryFn: rocket.ports, enabled: online });
+}
+
+/** Port conflicts (remaps and blocked ports) of every given project. */
+export function useConflicts(projects: readonly string[]): Conflict[] {
+  const qc = useQueryClient();
+  const online = useIsOnline();
+  const results = useQueries({
+    queries: projects.map((project) => {
+      const key = queryKeys.projectSummary(project);
+      return {
+        queryKey: key,
+        queryFn: () => guardedFetch(qc, key, () => fetchSummary(project)),
+        enabled: online,
+      };
+    }),
+  });
+  return results.flatMap((r) => r.data?.conflicts ?? []);
+}
+
+/**
+ * Recent jobs, newest first. `unavailable` is set for daemons without the
+ * jobs API (Swift `jobsAvailable`); events patch the cache in place.
+ */
+export function useJobs() {
+  const qc = useQueryClient();
+  const online = useIsOnline();
+  const query = useQuery({
+    queryKey: queryKeys.jobs,
+    queryFn: () => fetchJobsGuarded(qc, () => rocket.jobs({ all: true, limit: 50 })),
+    enabled: online,
+  });
+  const unavailable = query.error instanceof RocketError && query.error.code === "endpoint";
+  return { ...query, jobs: query.data?.jobs ?? [], unavailable };
 }
 
 /** Registered projects plus any project with known runs, sorted. */

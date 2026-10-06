@@ -43,4 +43,6 @@ pub struct DaemonDetails {
     /// The rocket binary the app would launch, when one is found.
     pub rocket_bin: Option<String>,
     pub health: Option<HealthInfo>,
+    /// Non-fatal problems, e.g. `daemon.json` readable by other users.
+    pub warnings: Vec<String>,
 }

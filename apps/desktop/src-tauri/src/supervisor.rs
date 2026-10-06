@@ -26,6 +26,7 @@ pub async fn set_status(app: &AppHandle, state: &AppState, status: ConnectionSta
             ConnectionStatus::Connecting => tracing::info!("connecting to rocketd"),
         }
         let _ = app.emit(CONNECTION, status);
+        state.tray.notify_one();
     }
 }
 
@@ -83,7 +84,12 @@ async fn session(app: &AppHandle, state: &AppState, backoff: &mut Backoff) -> Re
             item = stream.next() => match item {
                 None => return Ok(()),
                 Some(Ok(event)) => match event.event() {
-                    Some(payload) => { let _ = app.emit(EVENT, payload); }
+                    Some(payload) => {
+                        if payload.r#type == "service.state" {
+                            state.tray.notify_one();
+                        }
+                        let _ = app.emit(EVENT, payload);
+                    }
                     None => tracing::debug!("ignoring an unknown daemon event"),
                 },
                 Some(Err(e @ ClientError::Decode(_))) => tracing::warn!("skipping event: {e}"),

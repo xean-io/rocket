@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { queryKeys } from "@/lib/cache";
+import { applyJob, queryKeys } from "@/lib/cache";
 import { confirmDeploy } from "@/lib/deploy";
 import { describeError } from "@/lib/errors";
 import { useNav } from "@/lib/nav";
@@ -30,8 +30,11 @@ export function DeployDialog() {
   const deploy = useMutation({
     mutationFn: confirmDeploy,
     onSuccess: (job) => {
+      const rerun = useNav.getState().pendingDeploy?.rerun;
       clear();
+      applyJob(qc, job);
       void qc.invalidateQueries({ queryKey: queryKeys.jobs });
+      if (rerun) useNav.getState().selectJob(job.id);
       toast.success(`Deploying to ${job.env || job.name}`, {
         action: { label: "View jobs", onClick: () => void navigate("/jobs") },
       });
@@ -51,7 +54,9 @@ export function DeployDialog() {
             <AlertDialogHeader>
               <AlertDialogTitle>Deploy to {pending.env}?</AlertDialogTitle>
               <AlertDialogDescription>
-                Run {pending.project}&apos;s configured deployment to {pending.env}.
+                {pending.rerun
+                  ? `Run ${pending.project}'s deployment to ${pending.env} again.`
+                  : `Run ${pending.project}'s configured deployment to ${pending.env}.`}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

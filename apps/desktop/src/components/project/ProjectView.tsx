@@ -19,7 +19,7 @@ import {
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useProjectActions } from "@/hooks/useProjectActions";
 import { useReconcileEnv } from "@/hooks/useReconcileEnvs";
-import { useShortcuts } from "@/hooks/useShortcuts";
+import { useMenuActions } from "@/hooks/useMenuActions";
 import { knownEnvs, validatedEnv } from "@/lib/envs";
 import { useNav } from "@/lib/nav";
 import { sortedServices, useIsOnline, useProjects, useProjectSummary } from "@/lib/queries";
@@ -64,12 +64,12 @@ export function ProjectView({ project }: { project: string }) {
     setInspectorOpen(true);
   };
 
-  useShortcuts([
-    { key: "u", shift: true, handler: () => up() },
-    { key: "r", handler: () => restart() },
-    { key: ".", handler: () => down() },
-    { key: "l", handler: toggleInspector },
-  ]);
+  useMenuActions({
+    "services.up": () => up(),
+    "services.restart": () => restart(),
+    "services.stop": () => down(),
+    "services.logs": toggleInspector,
+  });
 
   const hasServices = runs.length > 0;
   return (

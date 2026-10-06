@@ -12,11 +12,15 @@ mod commands;
 mod dto;
 mod error;
 mod follow;
+mod menu;
 mod state;
 mod supervisor;
+#[cfg(desktop)]
+mod tray;
+mod window;
 
 use state::AppState;
-use tauri::{Manager, WindowEvent};
+use tauri::{Manager, RunEvent, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -32,11 +36,7 @@ pub fn run() {
     {
         builder = builder
             .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-                if let Some(w) = app.get_webview_window("main") {
-                    let _ = w.unminimize();
-                    let _ = w.show();
-                    let _ = w.set_focus();
-                }
+                window::show_main(app);
             }))
             .plugin(tauri_plugin_window_state::Builder::default().build());
     }
@@ -48,13 +48,23 @@ pub fn run() {
         .setup(|app| {
             let paths = rocket_client::Paths::resolve()?;
             app.manage(AppState::new(paths)?);
+            #[cfg(desktop)]
+            {
+                app.set_menu(menu::build(app.handle())?)?;
+                tray::init(app.handle())?;
+            }
             tauri::async_runtime::spawn(supervisor::run(app.handle().clone()));
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if matches!(event, WindowEvent::Destroyed) {
-                window.state::<AppState>().stop_all_follows();
+        .on_menu_event(|app, event| menu::handle_event(app, event.id().as_ref()))
+        .on_window_event(|window, event| match event {
+            // Closing the window keeps the app alive in the tray.
+            WindowEvent::CloseRequested { api, .. } if window.label() == window::MAIN => {
+                api.prevent_close();
+                let _ = window.hide();
             }
+            WindowEvent::Destroyed => window.state::<AppState>().stop_all_follows(),
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![
             commands::connection_status,
@@ -81,7 +91,17 @@ pub fn run() {
             commands::follow_job_logs,
             commands::follow_service_logs,
             commands::stop_follow,
+            commands::initial_route,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running the Rocket desktop app");
+        .build(tauri::generate_context!())
+        .expect("error while building the Rocket desktop app")
+        .run(|app, event| {
+            // Clicking the Dock icon with every window hidden brings it back.
+            #[cfg(target_os = "macos")]
+            if let RunEvent::Reopen { .. } = event {
+                window::show_main(app);
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }

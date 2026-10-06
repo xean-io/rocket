@@ -1,6 +1,7 @@
 // Daemon events -> react-query cache. Pure helpers plus `applyEvent`.
 import type { QueryClient } from "@tanstack/react-query";
 import type { Event, Job, JobsResult, Run, StatusResult, Summary } from "./bindings";
+import { retainTerminal, sortJobs } from "./jobs";
 import { bumpRevision } from "./snapshots";
 
 export const queryKeys = {
@@ -28,13 +29,29 @@ export function upsertRun(runs: Run[], run: Run): Run[] {
   return next;
 }
 
-/** Replaces the job with the same id, or puts it first (newest first). */
+/**
+ * Replaces the job with the same id, or adds it; newest first. A terminal job
+ * is never overwritten by a late "running" snapshot (Swift `retainingTerminalJob`).
+ */
 export function upsertJob(jobs: Job[], job: Job): Job[] {
-  const i = jobs.findIndex((j) => j.id === job.id);
-  if (i === -1) return [job, ...jobs];
-  const next = jobs.slice();
-  next[i] = job;
-  return next;
+  const current = jobs.find((j) => j.id === job.id);
+  const next = retainTerminal(current, job);
+  return sortJobs([...jobs.filter((j) => j.id !== job.id), next]);
+}
+
+/** Patches only the status of a cached job (a `job.state` event without the job). */
+function patchJobStatus(jobs: Job[], id: string, status: Job["status"]): Job[] {
+  const current = jobs.find((j) => j.id === id);
+  if (!current) return jobs;
+  return upsertJob(jobs, { ...current, status });
+}
+
+/** Applies a job snapshot (event or action result) to the cached jobs list. */
+export function applyJob(qc: QueryClient, job: Job): void {
+  qc.setQueryData<JobsResult>(queryKeys.jobs, (old) =>
+    old ? { ...old, jobs: upsertJob(old.jobs, job) } : old,
+  );
+  bumpRevision(qc, queryKeys.jobs);
 }
 
 /**
@@ -62,9 +79,11 @@ export function applyEvent(qc: QueryClient, ev: Event): void {
       break;
     case "job.state":
       if (ev.job) {
-        const job = ev.job;
+        applyJob(qc, ev.job);
+      } else if (ev.job_id && ev.status) {
+        const { job_id: id, status } = ev;
         qc.setQueryData<JobsResult>(queryKeys.jobs, (old) =>
-          old ? { ...old, jobs: upsertJob(old.jobs, job) } : old,
+          old ? { ...old, jobs: patchJobStatus(old.jobs, id, status) } : old,
         );
         bumpRevision(qc, queryKeys.jobs);
       }

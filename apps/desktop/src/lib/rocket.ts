@@ -101,6 +101,8 @@ export const rocket = {
   daemonInfo: () => call<DaemonDetails>("daemon_info"),
   restartDaemon: () => call<DaemonDetails>("restart_daemon"),
   reconnect: () => call<void>("reconnect"),
+  /** Debug builds only: the route named by `ROCKET_INITIAL_ROUTE`. */
+  initialRoute: () => call<string | null>("initial_route"),
 };
 
 /** Stops a log follow; safe to call more than once. */

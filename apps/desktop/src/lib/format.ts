@@ -39,3 +39,16 @@ export function formatClock(iso?: string | null): string | undefined {
 }
 
 export const formatOwner = (owner?: string) => owner || "user";
+
+/** `just now`, `3 minutes ago`, `yesterday`: coarse relative time like Swift's `.relative`. */
+export function formatRelative(iso: string | undefined | null, now: number = Date.now()): string {
+  const t = parseTime(iso);
+  if (t === undefined || t <= 0) return "—";
+  const seconds = Math.round((t - now) / 1000);
+  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  const abs = Math.abs(seconds);
+  if (abs < 45) return "just now";
+  if (abs < 3600) return rtf.format(Math.round(seconds / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(seconds / 3600), "hour");
+  return rtf.format(Math.round(seconds / 86400), "day");
+}
