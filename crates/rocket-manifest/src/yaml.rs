@@ -106,7 +106,7 @@ impl<'a> Node<'a> {
         let content = &self.tree.get(self.id).content;
         let mut explicit: Vec<(Node<'a>, Node<'a>)> = Vec::new();
         let mut merges: Vec<Node<'a>> = Vec::new();
-        for pair in content.chunks_exact(2) {
+        for pair in content.as_chunks::<2>().0 {
             let key = Node::new(self.tree, pair[0]);
             let value = Node::new(self.tree, pair[1]);
             if is_merge_key(self.tree, pair[0]) {
