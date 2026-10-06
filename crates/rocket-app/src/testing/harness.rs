@@ -6,13 +6,15 @@ use super::fakes::{
 };
 use super::projects::{jobs_project, nuvara, other_project};
 use crate::{App, Deps, Options};
-use rocket_domain::api::{UpRequest, UpResult};
+use rocket_domain::api::{JobRequest, UpRequest, UpResult};
 use rocket_domain::{Health, PortHolder, Run, RunState, ServiceKind};
+use rocket_domain::{Job, JobStatus};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use time::OffsetDateTime;
 use time::macros::datetime;
+use tokio_util::sync::CancellationToken;
 
 pub struct Harness {
     pub app: App,
@@ -114,12 +116,63 @@ impl Harness {
         self.app.up(req).await.expect("up")
     }
 
+    /// Starts a job, defaulting the project to `/code/jobs`, and requires a
+    /// running job back.
+    pub fn start_job(&self, mut req: JobRequest) -> Job {
+        if req.project.is_empty() {
+            req.project = "/code/jobs".into();
+        }
+        let job = self.app.start_job(req).expect("start job");
+        assert!(
+            !job.id.is_empty() && job.status == JobStatus::Running,
+            "started job {job:?}"
+        );
+        job
+    }
+
+    /// Waits up to 5 seconds for the job to finish.
+    pub async fn wait_job(&self, id: &str) -> Job {
+        let cancel = CancellationToken::new();
+        let wait = self.app.wait_job(id, &cancel);
+        tokio::time::timeout(Duration::from_secs(5), wait)
+            .await
+            .unwrap_or_else(|_| panic!("job {id} did not finish"))
+            .unwrap_or_else(|e| panic!("wait job {id}: {e}"))
+    }
+
+    /// Waits until the job's current step has a process group.
+    pub async fn wait_job_pgid(&self, id: &str) -> Job {
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        while std::time::Instant::now() < deadline {
+            if let Ok(j) = self.app.get_job(id)
+                && j.pgid > 0
+            {
+                return j;
+            }
+            tokio::time::sleep(Duration::from_millis(2)).await;
+        }
+        panic!("job {id} never started a process");
+    }
+
+    /// argv of every process started so far.
+    pub fn argvs(&self) -> Vec<Vec<String>> {
+        self.runner.started().into_iter().map(|s| s.argv).collect()
+    }
+
     pub fn run(&self, project: &str, service: &str) -> Run {
         use rocket_domain::ports::Store;
         self.store
             .get_run(project, service)
             .expect("store")
             .unwrap_or_else(|| panic!("no run for {project}/{service}"))
+    }
+
+    /// The current manifest of `root` in the fake loader.
+    pub fn loader_project(&self, root: &str) -> rocket_domain::Project {
+        use rocket_domain::ports::ManifestLoader;
+        self.loader
+            .load(std::path::Path::new(root))
+            .expect("project is registered in the fake loader")
     }
 
     pub fn now(&self) -> OffsetDateTime {

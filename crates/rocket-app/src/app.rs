@@ -75,8 +75,6 @@ pub struct Deps {
 pub(crate) struct Config {
     pub now: Clock,
     pub base_env: BaseEnv,
-    /// Used by job execution (R6).
-    #[allow(dead_code)]
     pub new_id: IdGen,
     pub stop_grace: Duration,
     pub health_interval: Duration,
@@ -127,8 +125,7 @@ pub(crate) fn new_job_id() -> String {
 pub(crate) struct State {
     /// Processes this daemon supervises, by `project/service`.
     pub watches: HashMap<String, Watch>,
-    /// Running jobs by id (R6).
-    #[allow(dead_code)]
+    /// Running jobs by id.
     pub jobs: HashMap<String, JobRun>,
 }
 

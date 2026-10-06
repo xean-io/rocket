@@ -6,9 +6,9 @@ use rocket_domain::api::{DownRequest, UpRequest, service_action};
 use rocket_domain::{Environment, Project, RunState, ServiceKind};
 use std::collections::BTreeMap;
 
-const ROOT: &str = "/code/profiles";
+pub(super) const ROOT: &str = "/code/profiles";
 
-fn profile_project() -> Project {
+pub(super) fn profile_project() -> Project {
     rocket_manifest::parse(
         br#"version: 1
 name: profiles
@@ -38,7 +38,7 @@ fn profile_request(body: &str) -> UpRequest {
     req
 }
 
-fn profile_harness() -> Harness {
+pub(super) fn profile_harness() -> Harness {
     let h = Harness::new();
     h.loader.set(profile_project());
     h

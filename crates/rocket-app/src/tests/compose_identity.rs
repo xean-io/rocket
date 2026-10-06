@@ -1,6 +1,6 @@
 //! Ports of the non-job cases of `compose_identity_test.go`. The two job
 //! tests (`TestJobsForceComposeProjectIdentityAndPersistEnvironment`,
-//! `TestJobsRejectInvalidEnvironmentBeforePersistence`) belong to R6.
+//! `TestJobsRejectInvalidEnvironmentBeforePersistence`) live in `jobs.rs`.
 
 use crate::testing::*;
 use rocket_domain::{
