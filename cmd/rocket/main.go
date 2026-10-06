@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -17,8 +18,6 @@ import (
 	"github.com/xean-io/rocket/internal/manifest"
 	"github.com/xean-io/rocket/internal/paths"
 )
-
-var version = "0.1.0-dev"
 
 // Exit codes: 0 ok, 1 error, 2 partial failure / failed job, 3 confirmation required.
 const exitConfirmation = 3
@@ -37,6 +36,7 @@ type globals struct {
 }
 
 func main() {
+	version = resolveVersion(version, debug.ReadBuildInfo)
 	g := &globals{}
 	root := &cobra.Command{
 		Use:           "rocket",
