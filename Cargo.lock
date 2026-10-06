@@ -3341,6 +3341,7 @@ version = "0.1.1"
 dependencies = [
  "clap",
  "futures-util",
+ "nix",
  "rocket-agentdocs",
  "rocket-app",
  "rocket-client",

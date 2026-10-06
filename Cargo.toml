@@ -9,6 +9,11 @@ rust-version = "1.97"
 license = "MIT"
 repository = "https://github.com/xean-io/rocket"
 
+[profile.release]
+# Smaller release binaries (the Go build used `-ldflags "-s -w"`).
+strip = true
+lto = "thin"
+
 [workspace.lints.rust]
 # Process supervision needs a few `unsafe` blocks (e.g. pre_exec); crates that
 # need them opt in locally with a justified `#[allow(unsafe_code)]`.
