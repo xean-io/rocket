@@ -14,8 +14,12 @@ serde_json.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio.workspace = true
+ts-rs = { workspace = true, optional = true }
 
 [dev-dependencies]
 
 [lints]
 workspace = true
+
+[features]
+ts = ["dep:ts-rs"]

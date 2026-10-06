@@ -37,6 +37,7 @@ impl JobStatus {
 /// One execution of a pipeline, setup action or deploy, supervised by the
 /// daemon. Steps run sequentially and stop at the first failure.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Job {
     pub id: String,
     pub project: String,
@@ -75,18 +76,21 @@ pub struct Job {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exit_code: Option<i32>,
     #[serde(default = "zero_time", with = "time::serde::rfc3339")]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub started_at: OffsetDateTime,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub expires_at: Option<OffsetDateTime>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub finished_at: Option<OffsetDateTime>,
     #[serde(default)]
     pub duration_ms: i64,

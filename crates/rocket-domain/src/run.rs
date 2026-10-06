@@ -39,6 +39,7 @@ string_enum! {
 
 /// The current (or last) instance of a service.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Run {
     pub project: String,
     pub service: String,
@@ -68,18 +69,21 @@ pub struct Run {
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub expires_at: Option<OffsetDateTime>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub started_at: Option<OffsetDateTime>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub stopped_at: Option<OffsetDateTime>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exit_code: Option<i32>,
@@ -108,17 +112,20 @@ impl Run {
 
 /// Reserves a host port for one service port across all projects.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Lease {
     pub port: u16,
     pub project: String,
     pub service: String,
     pub port_name: String,
     #[serde(default = "zero_time", with = "time::serde::rfc3339")]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub created_at: OffsetDateTime,
 }
 
 /// A foreign process listening on a port.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct PortHolder {
     pub pid: i32,
     pub command: String,
@@ -128,6 +135,7 @@ pub struct PortHolder {
 
 /// An automatic port reassignment.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct PortRemap {
     pub name: String,
     pub from: u16,
@@ -150,9 +158,11 @@ pub mod event_type {
 
 /// A daemon notification (SSE payload).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Event {
     pub r#type: String,
     #[serde(default = "zero_time", with = "time::serde::rfc3339")]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub time: OffsetDateTime,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub project: String,

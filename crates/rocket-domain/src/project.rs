@@ -10,6 +10,7 @@ macro_rules! string_enum {
     ($(#[$meta:meta])* $name:ident { $($(#[$vmeta:meta])* $variant:ident => $text:literal),+ $(,)? }) => {
         $(#[$meta])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+        #[cfg_attr(feature = "ts", derive(ts_rs::TS))]
         pub enum $name {
             $($(#[$vmeta])* #[serde(rename = $text)] $variant),+
         }
@@ -170,6 +171,7 @@ impl Service {
 
 /// One unit of a pipeline or setup action.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Step {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub task: String,
@@ -278,12 +280,14 @@ pub struct Project {
 
 /// An entry of the global project registry.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct ProjectRef {
     #[serde(default)]
     pub name: String,
     #[serde(default)]
     pub path: String,
     #[serde(default = "zero_time", with = "time::serde::rfc3339")]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub added_at: OffsetDateTime,
 }
 

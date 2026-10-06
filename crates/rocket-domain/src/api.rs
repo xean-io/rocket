@@ -59,12 +59,14 @@ pub mod conflict_kind {
 
 /// `GET /v1/health`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct HealthInfo {
     pub ok: bool,
     pub api: String,
     pub version: String,
     pub pid: i32,
     #[serde(default = "zero_time", with = "time::serde::rfc3339")]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub started_at: OffsetDateTime,
     pub home: String,
     pub socket: String,
@@ -75,6 +77,7 @@ pub struct HealthInfo {
 
 /// Body of every non-2xx response.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct ErrorBody {
     #[serde(default)]
     pub error: String,
@@ -86,6 +89,7 @@ pub struct ErrorBody {
 
 /// `POST /v1/projects`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[serde(deny_unknown_fields)]
 pub struct AddProjectRequest {
     #[serde(default)]
@@ -94,6 +98,7 @@ pub struct AddProjectRequest {
 
 /// `GET /v1/projects`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct ProjectsResult {
     #[serde(default, deserialize_with = "null_default")]
     pub projects: Vec<ProjectRef>,
@@ -101,6 +106,7 @@ pub struct ProjectsResult {
 
 /// `DELETE /v1/projects/{name}`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct RemovedProject {
     #[serde(default)]
     pub removed: String,
@@ -108,6 +114,7 @@ pub struct RemovedProject {
 
 /// `POST /v1/shutdown`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct ShutdownResult {
     #[serde(default)]
     pub ok: bool,
@@ -117,6 +124,7 @@ pub struct ShutdownResult {
 
 /// `POST /v1/up` and `POST /v1/restart`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[serde(deny_unknown_fields)]
 pub struct UpRequest {
     /// Absolute path or registered name.
@@ -141,6 +149,7 @@ pub struct UpRequest {
 
 /// Outcome of starting one service.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct ServiceResult {
     pub service: String,
     /// See [`service_action`].
@@ -169,6 +178,7 @@ pub struct ServiceResult {
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub expires_at: Option<OffsetDateTime>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub log_path: String,
@@ -178,6 +188,7 @@ pub struct ServiceResult {
 
 /// `POST /v1/up` and `POST /v1/restart` response; services in start order.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct UpResult {
     pub project: String,
     pub env: String,
@@ -193,6 +204,7 @@ pub struct UpResult {
 
 /// `POST /v1/down`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[serde(deny_unknown_fields)]
 pub struct DownRequest {
     /// Path or name; ignored with `everywhere`.
@@ -211,6 +223,7 @@ pub struct DownRequest {
 
 /// `POST /v1/down` response.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct DownResult {
     #[serde(default, deserialize_with = "null_default")]
     pub stopped: Vec<Run>,
@@ -238,6 +251,7 @@ pub struct DownResult {
 
 /// `GET /v1/ps`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct StatusResult {
     #[serde(default, deserialize_with = "null_default")]
     pub services: Vec<Run>,
@@ -245,6 +259,7 @@ pub struct StatusResult {
 
 /// `GET /v1/logs` (tail).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct LogsResult {
     #[serde(default)]
     pub project: String,
@@ -256,6 +271,7 @@ pub struct LogsResult {
 
 /// One row of the global port map: a lease plus its owning run.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct PortInfo {
     #[serde(flatten)]
     pub lease: Lease,
@@ -271,6 +287,7 @@ pub struct PortInfo {
 
 /// `GET /v1/ports`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct PortsResult {
     #[serde(default, deserialize_with = "null_default")]
     pub ports: Vec<PortInfo>,
@@ -278,6 +295,7 @@ pub struct PortsResult {
 
 /// One garbage-collection step; see [`gc_action`].
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct GcAction {
     pub action: String,
     #[serde(default)]
@@ -292,6 +310,7 @@ pub struct GcAction {
 
 /// `POST /v1/gc`.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct GcResult {
     #[serde(default, deserialize_with = "null_default")]
     pub actions: Vec<GcAction>,
@@ -301,6 +320,7 @@ pub struct GcResult {
 /// `deploy_envs` are `None` when an older daemon omitted them, which differs
 /// from an explicitly empty list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct ProjectInfo {
     pub name: String,
     pub root: String,
@@ -315,6 +335,7 @@ pub struct ProjectInfo {
 
 /// A port problem reported by `status`; see [`conflict_kind`].
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Conflict {
     pub kind: String,
     pub project: String,
@@ -337,6 +358,7 @@ pub struct Conflict {
 
 /// `GET /v1/status`: one-shot overview.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct Summary {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub project: Option<ProjectInfo>,
@@ -351,6 +373,7 @@ pub struct Summary {
 
 /// `POST /v1/jobs`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 #[serde(deny_unknown_fields)]
 pub struct JobRequest {
     #[serde(default)]
@@ -398,6 +421,7 @@ impl Default for JobRequest {
 
 /// `GET /v1/jobs`, newest first.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct JobsResult {
     #[serde(default, deserialize_with = "null_default")]
     pub jobs: Vec<Job>,
@@ -405,6 +429,7 @@ pub struct JobsResult {
 
 /// `GET /v1/jobs/{id}/logs` (tail).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct JobLogsResult {
     #[serde(default)]
     pub job: String,
@@ -417,6 +442,7 @@ pub struct JobLogsResult {
 /// Printed by blocking `rocket run|setup|... --json` (CLI only). `exit_code`
 /// is always present (`null` when unknown).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS))]
 pub struct JobOutcome {
     pub job: String,
     pub project: String,
