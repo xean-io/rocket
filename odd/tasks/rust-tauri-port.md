@@ -100,6 +100,13 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ## Progress
 
+- 2026-10-06: Released v1.0.0. PR #1 merged (e83d5ff), tag v1.0.0. Release
+  assets: CLI darwin/linux amd64+arm64, checksums, Rocket_1.0.0_universal.dmg,
+  Rocket.app.tar.gz + .sig, latest.json (1.0.0, darwin-aarch64/x86_64). Casks
+  updated by CI (376051b, 963ecc9). Verified: /releases/latest/download/
+  latest.json resolves to 1.0.0; darwin_arm64 checksum OK; `rocket version
+  1.0.0`. Desktop job needed one rerun (secret added after tag push).
+
 - 2026-10-06: CI fixes on PR #1: clippy `manual_chunks` on Rust 1.99
   (d2d0ad5); daemon e2e gated behind `e2e` feature (macOS runner http.server
   slowness, same policy as Go) and script fixtures written from a child
@@ -138,4 +145,5 @@ shell; cross-platform UI via Tauri instead of macOS-only SwiftUI.
 
 ## Next step
 
-User adds the `TAURI_SIGNING_PRIVATE_KEY` secret; merge xean-io/rocket#1; tag `v1.0.0` on main.
+None; feature shipped in v1.0.0. Follow-ups: `--json` nil-slice `null`
+parity decision; Linux desktop build; Windows support.
