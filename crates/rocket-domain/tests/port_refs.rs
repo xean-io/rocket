@@ -1,4 +1,4 @@
-//! Tests for port reference scanning (internal/domain/port_refs.go).
+//! Tests for port reference scanning (domain/port_refs.go).
 
 use rocket_domain::{PortReference, Service, port_references};
 

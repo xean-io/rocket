@@ -1,4 +1,4 @@
-//! Daemon lifecycle (ports of `internal/daemon/*_test.go` plus the
+//! Daemon lifecycle (ports of `daemon/*_test.go` plus the
 //! composition-root behaviour of `daemon.Run`).
 #![cfg(unix)]
 

@@ -1,5 +1,5 @@
 //! `rocket.yaml` discovery, strict parsing, validation, dotenv loading and
-//! the JSON Schema: a faithful port of Go's `internal/manifest`.
+//! the JSON Schema: a faithful port of Go's `manifest`.
 //!
 //! # YAML library choice
 //!

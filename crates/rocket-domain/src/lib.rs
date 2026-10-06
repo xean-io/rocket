@@ -1,7 +1,7 @@
 //! rocket's core model and the port traits the application core depends on.
 //!
-//! This crate is a faithful port of Go's `internal/domain` and
-//! `internal/ports`. It performs no I/O: no clocks (callers pass `now`), no
+//! This crate is a faithful port of Go's `domain` and
+//! `ports`. It performs no I/O: no clocks (callers pass `now`), no
 //! processes, no filesystem access. Module names mirror the Go files:
 //! [`project`], [`run`], [`job`], [`graph`], [`port_refs`], and [`ports`].
 //!

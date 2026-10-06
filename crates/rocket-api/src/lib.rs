@@ -1,5 +1,5 @@
-//! rocketd's HTTP/SSE API (Go: `internal/adapters/api`), served with axum.
-//! The contract is `internal/adapters/api/README.md`.
+//! rocketd's HTTP/SSE API (Go: `adapters/api`), served with axum.
+//! The contract is `crates/rocket-api/README.md`.
 
 pub mod auth;
 pub mod decode;

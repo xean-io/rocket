@@ -22,21 +22,36 @@ so nobody leaves orphan processes holding ports.
 brew tap xean-io/rocket https://github.com/xean-io/rocket
 brew install --cask xean-io/rocket/rocket
 
-# or with Go 1.26+ (no CGO)
-go install github.com/xean-io/rocket/cmd/rocket@latest
+# or build from source (Rust stable, see rust-toolchain.toml)
+git clone https://github.com/xean-io/rocket && cd rocket
+cargo install --locked --path crates/rocket-cli
 
 rocket daemon start          # optional: any command auto-starts the daemon
 ```
 
-Prebuilt archives for macOS, Linux and Windows (amd64/arm64) are on the
-[releases page](https://github.com/xean-io/rocket/releases).
+Prebuilt archives for macOS and Linux (amd64/arm64) are on the
+[releases page](https://github.com/xean-io/rocket/releases). Windows is not
+shipped yet.
+
+### Building and testing
+
+```sh
+cargo build -p rocket-cli                     # target/debug/rocket
+cargo test --workspace                        # unit tests: hermetic, no daemon or network
+cargo test -p rocket-cli --features e2e       # end-to-end: real daemon and processes (needs python3)
+```
+
+A desktop app (Tauri + React) lives in `apps/desktop`; see its `package.json`
+for `pnpm dev`, `pnpm test` and `pnpm tauri build`. It talks to the same daemon
+API as the CLI.
 
 ### Releasing
 
-Push a `vX.Y.Z` tag; the `release` workflow runs GoReleaser, publishes the
-GitHub release and commits the updated cask to `Casks/rocket.rb` on `main`
-(this repo is its own Homebrew tap). Dry run locally with
-`goreleaser release --snapshot --clean`.
+Push a `vX.Y.Z` tag; the `release` workflow builds the Rust binary for macOS and
+Linux with cargo-zigbuild, runs GoReleaser, publishes the GitHub release and
+commits the updated cask to `Casks/rocket.rb` on `main` (this repo is its own
+Homebrew tap). Dry run locally (needs rustup, zig and cargo-zigbuild) with
+`goreleaser release --snapshot --clean --skip=publish`.
 
 State lives in `~/.rocket` (override with `ROCKET_HOME`).
 
@@ -79,7 +94,7 @@ groups:
   all: ["*"]
 pipelines:                       # sequential steps, stop at the first failure
   test: [{ task: test }]
-  ci:   [{ task: lint }, { run: "go test ./..." }]
+  ci:   [{ task: lint }, { run: "pnpm test" }]
 ```
 
 `rocket schema` prints the JSON Schema. Compose projects are always named
@@ -224,8 +239,8 @@ provide no creation evidence. Volumes remain intact when services stop.
 
 `rocket run --json` returns `{job, status, exit_code, duration_ms, log_path, tail}`
 (last 50 log lines). The daemon API (unix socket, plus a token-protected TCP
-listener for the macOS app) is documented in
-[`internal/adapters/api/README.md`](internal/adapters/api/README.md).
+listener for the desktop app) is documented in
+[`crates/rocket-api/README.md`](crates/rocket-api/README.md).
 
 ## AI agents
 

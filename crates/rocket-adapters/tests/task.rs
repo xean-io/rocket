@@ -1,4 +1,4 @@
-//! Port of `internal/adapters/task/{task_test,task_integration_test}.go`.
+//! Port of `adapters/task/{task_test,task_integration_test}.go`.
 
 use rocket_adapters::task::Driver;
 use rocket_domain::ports::TaskDriver;

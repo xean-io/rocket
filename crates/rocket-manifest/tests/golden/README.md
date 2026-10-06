@@ -1,9 +1,10 @@
 # Golden files
 
-Oracle data captured from the Go implementation (`internal/manifest`).
+Oracle data captured from the original Go implementation (its `manifest` package),
+which was removed in R12 (see git history before commit cd9cabe).
 
-- `schema.json`: `go run ./cmd/rocket schema > crates/rocket-manifest/tests/golden/schema.json`.
-  The CLI prints `Schema()` plus a newline; the test compares against that.
+- `schema.json`: the output of the Go `rocket schema` command (`Schema()` plus a
+  newline); the test compares against that.
 - `corpus.json`: ~300 manifest inputs plus the exact result Go's
   `manifest.Parse` produced (error text, or the marshalled project, pipeline
   needs and port env bindings) and dotenv inputs with `ParseDotenv` output.
@@ -14,4 +15,4 @@ Oracle data captured from the Go implementation (`internal/manifest`).
   sets; cases flagged `syntax` only assert accept/reject because libyaml and
   saphyr word syntax errors differently.
 
-The Go code is removed in task R12, after which these files are frozen.
+The Go code is gone, so these files are frozen.

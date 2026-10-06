@@ -1,4 +1,4 @@
-//! Ports of `internal/adapters/probe/{probe_test,probe_integration_test}.go`.
+//! Ports of `adapters/probe/{probe_test,probe_integration_test}.go`.
 
 use rocket_adapters::probe::{Health, Ports, parse_cwd, parse_lsof};
 use rocket_domain::HealthCheck;

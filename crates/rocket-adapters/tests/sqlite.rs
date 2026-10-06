@@ -1,4 +1,4 @@
-//! Ports of `internal/adapters/sqlite/store_test.go` plus Go <-> Rust
+//! Ports of `adapters/sqlite/store_test.go` plus Go <-> Rust
 //! `state.db` compatibility checks.
 
 use rocket_adapters::sqlite::Store;
@@ -215,6 +215,10 @@ fn open_applies_the_go_pragmas_and_schema() {
 }
 
 // ---- Go <-> Rust compatibility -------------------------------------------------
+//
+// `go_state.db` and `go_state.expected.json` were written by the original Go
+// store (removed in R12; the generator lives in git history before commit
+// cd9cabe), so they are frozen fixtures and keep their Go-era sample data.
 
 const GO_DB: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/go_state.db");
 const GO_EXPECTED: &str = concat!(

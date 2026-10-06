@@ -1,4 +1,4 @@
-//! Jobs: pipelines, setup actions and deploys (Go: `internal/app/jobs.go`).
+//! Jobs: pipelines, setup actions and deploys (Go: `app/jobs.go`).
 //!
 //! [`App::start_job`] validates a request, persists the job and returns while
 //! a background task runs the prerequisite startup and the steps. The task

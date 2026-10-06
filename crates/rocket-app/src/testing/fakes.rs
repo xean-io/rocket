@@ -1,4 +1,4 @@
-//! In-memory port fakes (Go: `internal/app/fakes_test.go`).
+//! In-memory port fakes (Go: `app/fakes_test.go`).
 
 use rocket_domain::ports::{
     self, ComposeDriver, ComposeTarget, EnvSource, Error, EventBus, HealthProbe, LogSink,

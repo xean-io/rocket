@@ -1,4 +1,4 @@
-//! Typed async client for the rocketd HTTP/SSE API (`internal/adapters/api/README.md`).
+//! Typed async client for the rocketd HTTP/SSE API (`crates/rocket-api/README.md`).
 //!
 //! * [`Paths`] / [`DaemonInfo`]: the `$ROCKET_HOME` layout and `daemon.json`.
 //! * [`Client`]: one typed method per endpoint over the unix socket (no

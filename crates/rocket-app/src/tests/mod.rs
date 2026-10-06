@@ -1,4 +1,4 @@
-//! Ports of the Go use-case tests (`internal/app/*_test.go`, non-job cases).
+//! Ports of the Go use-case tests (`app/*_test.go`, non-job cases).
 
 mod app;
 mod compose_identity;

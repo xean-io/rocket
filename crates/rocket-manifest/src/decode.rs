@@ -1,4 +1,4 @@
-//! A port of the parts of yaml.v3's decoder that `internal/manifest` relies
+//! A port of the parts of yaml.v3's decoder that `manifest` relies
 //! on, specialised to the raw manifest types: strict unknown-field checks
 //! (`KnownFields(true)`), duplicate-key detection, merge keys, anchors and
 //! aliases, `UnmarshalYAML` hooks and yaml.v3's aggregated `TypeError`

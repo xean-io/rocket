@@ -1,4 +1,4 @@
-//! Port of `TestRequireTokenGuardsEveryRequest` (internal/daemon/tcp_test.go).
+//! Port of `TestRequireTokenGuardsEveryRequest` (daemon/tcp_test.go).
 
 mod common;
 

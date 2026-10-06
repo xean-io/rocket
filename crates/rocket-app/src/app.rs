@@ -1,5 +1,5 @@
 //! The application core: dependency wiring, shared state, event helpers,
-//! per-project gates and the project registry (Go: `internal/app/app.go`).
+//! per-project gates and the project registry (Go: `app/app.go`).
 
 use crate::error::{AppError, Result};
 use crate::jobs::JobRun;

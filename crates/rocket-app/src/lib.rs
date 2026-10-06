@@ -1,4 +1,4 @@
-//! rocket's use cases on top of the port traits (Go: `internal/app`).
+//! rocket's use cases on top of the port traits (Go: `app`).
 //!
 //! [`App`] is built from [`Deps`] (every port injected as `Arc<dyn Trait>`)
 //! and hosts: `up`/`restart`/`down`, `status`/`logs`/`ports`/`summary`,

@@ -1,5 +1,5 @@
 //! `rocket init`: detects a project's Taskfile, compose files and `.env` and
-//! renders a starting `rocket.yaml` (Go: `internal/scaffold`). Detection only
+//! renders a starting `rocket.yaml` (Go: `scaffold`). Detection only
 //! parses YAML; it never runs `task` or `docker`.
 //!
 //! The rendered text and the JSON shape of [`Detected`] are byte-identical to

@@ -33,7 +33,7 @@ fn run_matches_go_encoding() {
 
 #[test]
 fn run_from_api_readme_literal() {
-    // Copied from internal/adapters/api/README.md ("Run"): explicit nulls and
+    // Copied from crates/rocket-api/README.md ("Run"): explicit nulls and
     // empty strings decode, and re-encoding applies omitempty.
     let readme = r#"{
       "project": "rocket-fixture", "service": "static", "env": "dev", "kind": "run",
@@ -63,7 +63,7 @@ fn run_keeps_zero_valued_pointers_and_trims_fraction() {
 
 #[test]
 fn job_matches_go_encoding_and_readme() {
-    let json = r#"{"id":"j3f9a0c12be","project":"nuvara","name":"ci","kind":"pipeline","env":"dev","profiles":["base","trends"],"owner":"agent:claude-123","steps":[{"task":"lint"},{"run":"go test ./..."}],"args":["-v"],"status":"failed","step":2,"pid":9120,"pgid":9120,"exit_code":1,"started_at":"2026-10-05T00:14:10Z","finished_at":"2026-10-05T00:14:42Z","duration_ms":32011,"log_path":"/Users/me/.rocket/logs/nuvara/jobs/j3f9a0c12be.log","error":"step 2 (run go test ./...) exited with code 1"}"#;
+    let json = r#"{"id":"j3f9a0c12be","project":"nuvara","name":"ci","kind":"pipeline","env":"dev","profiles":["base","trends"],"owner":"agent:claude-123","steps":[{"task":"lint"},{"run":"pnpm test"}],"args":["-v"],"status":"failed","step":2,"pid":9120,"pgid":9120,"exit_code":1,"started_at":"2026-10-05T00:14:10Z","finished_at":"2026-10-05T00:14:42Z","duration_ms":32011,"log_path":"/Users/me/.rocket/logs/nuvara/jobs/j3f9a0c12be.log","error":"step 2 (run pnpm test) exited with code 1"}"#;
     let job: Job = roundtrip(json);
     assert_eq!(job.kind, JobKind::Pipeline);
     assert_eq!(job.status, JobStatus::Failed);
@@ -76,7 +76,7 @@ fn job_matches_go_encoding_and_readme() {
             },
             Step {
                 task: String::new(),
-                run: "go test ./...".into()
+                run: "pnpm test".into()
             }
         ]
     );

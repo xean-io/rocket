@@ -1,4 +1,4 @@
-//! rocketd's composition root (Go: `internal/daemon`): wires the adapters
+//! rocketd's composition root (Go: `daemon`): wires the adapters
 //! into the application core, serves the API on the unix socket (mode 0600,
 //! token-free) and on a token-protected loopback TCP listener, publishes
 //! `daemon.json`, and runs until a signal or `POST /v1/shutdown`.

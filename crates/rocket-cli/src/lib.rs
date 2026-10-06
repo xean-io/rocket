@@ -1,4 +1,4 @@
-//! The `rocket` command line (Go: `cmd/rocket`): a port of the cobra tree
+//! The `rocket` command line (ported from the original Go CLI): a port of the cobra tree
 //! with the same commands, flags, human and `--json` output and exit codes
 //! (0 ok, 1 error, 2 partial failure or failed job, 3 confirmation
 //! required). `rocket daemon run` runs the daemon in-process.

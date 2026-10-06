@@ -1,4 +1,4 @@
-//! Port of `internal/adapters/events/bus_test.go`.
+//! Port of `adapters/events/bus_test.go`.
 
 use rocket_adapters::events::Bus;
 use rocket_domain::ports::EventBus;

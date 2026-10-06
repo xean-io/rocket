@@ -1,4 +1,4 @@
-//! `$ROCKET_HOME` layout (Go: `internal/paths`). Pure path computation; only
+//! `$ROCKET_HOME` layout (Go: `paths`). Pure path computation; only
 //! [`Paths::ensure`] touches the filesystem.
 
 use std::ffi::OsStr;

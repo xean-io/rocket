@@ -1,8 +1,8 @@
-//! Smoke test against a real rocket binary (Go today, Rust later).
+//! Smoke test against a real rocket binary (the Rust `rocket` binary).
 //!
 //! ```sh
-//! go build -o /tmp/rkbin/rocket ./cmd/rocket
-//! ROCKET_BIN=/tmp/rkbin/rocket cargo test -p rocket-client -- --ignored
+//! cargo build -p rocket-cli
+//! ROCKET_BIN=$PWD/target/debug/rocket cargo test -p rocket-client -- --ignored
 //! ```
 #![cfg(unix)]
 

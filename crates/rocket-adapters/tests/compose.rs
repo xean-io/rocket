@@ -1,4 +1,4 @@
-//! Ports of the `internal/adapters/compose/*_test.go` files. Fixture-script
+//! Ports of the `adapters/compose/*_test.go` files. Fixture-script
 //! tests run everywhere with sh; the Docker tests are `#[ignore]`d (run them
 //! with `cargo test -p rocket-adapters -- --ignored`) and skip themselves when
 //! `docker info` fails.

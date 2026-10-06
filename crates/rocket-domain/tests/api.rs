@@ -1,5 +1,5 @@
 //! Wire DTOs of the daemon HTTP API (`rocket_domain::api`): byte-compatible
-//! with Go's encoding/json, using literals from internal/adapters/api/README.md.
+//! with Go's encoding/json, using literals from crates/rocket-api/README.md.
 
 use rocket_domain::api::{
     AddProjectRequest, DownRequest, DownResult, ErrorBody, GcResult, HealthInfo, JobLogsResult,

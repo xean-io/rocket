@@ -1231,56 +1231,56 @@
       }
     },
     {
-      "name": "go test: bad name",
+      "name": "ported: bad name",
       "yaml": "version: 1\nname: 'Bad Name'\nservices: {a: {run: x}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - invalid project name \"Bad Name\" (use lowercase letters, digits, '.', '_' or '-')"
     },
     {
-      "name": "go test: bad timeout",
+      "name": "ported: bad timeout",
       "yaml": "version: 1\nname: x\nservices: {a: {run: x, ports: {h: {default: 1}}, health: {timeout: soon}}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - service \"a\": invalid health.timeout \"soon\""
     },
     {
-      "name": "go test: deploy with both",
+      "name": "ported: deploy with both",
       "yaml": "version: 1\nname: x\nenvs: {dev: {}, prod: {deploy: {task: a, run: b}}}\nservices: {a: {run: x}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - env \"prod\": deploy needs exactly one of task or run"
     },
     {
-      "name": "go test: deploy without action",
+      "name": "ported: deploy without action",
       "yaml": "version: 1\nname: x\nenvs: {dev: {}, prod: {deploy: {confirm: true}}}\nservices: {a: {run: x}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - env \"prod\": deploy needs exactly one of task or run"
     },
     {
-      "name": "go test: health path",
+      "name": "ported: health path",
       "yaml": "version: 1\nname: x\nservices: {a: {run: x, ports: {h: {default: 1}}, health: {http: health}}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - service \"a\": health.http \"health\" must start with /"
     },
     {
-      "name": "go test: health without ports",
+      "name": "ported: health without ports",
       "yaml": "version: 1\nname: x\nservices: {a: {run: x, health: {tcp: true}}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - service \"a\": health requires at least one port"
     },
     {
-      "name": "go test: missing version",
+      "name": "ported: missing version",
       "yaml": "name: x\nservices: {a: {run: x}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - version must be 1 (got 0)"
     },
     {
-      "name": "go test: name default",
+      "name": "ported: name default",
       "yaml": "version: 1\nservices: {a: {run: x}}",
       "root": "/code/x",
       "ok": true,
@@ -1303,28 +1303,28 @@
       }
     },
     {
-      "name": "go test: no services",
+      "name": "ported: no services",
       "yaml": "version: 1\nname: x",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - no services declared"
     },
     {
-      "name": "go test: pipeline step",
+      "name": "ported: pipeline step",
       "yaml": "version: 1\nname: x\nservices: {a: {run: x}}\npipelines: {t: [{}]}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - pipeline \"t\" step 1: exactly one of task or run is required"
     },
     {
-      "name": "go test: self dependency",
+      "name": "ported: self dependency",
       "yaml": "version: 1\nname: x\nservices: {a: {run: x, depends_on: [a]}}",
       "root": "/code/x",
       "ok": false,
       "error": "invalid rocket.yaml:\n  - service \"a\" depends on itself\n  - dependency cycle between services: a"
     },
     {
-      "name": "go test: unknown default env",
+      "name": "ported: unknown default env",
       "yaml": "version: 1\nname: x\ndefault_env: qa\nenvs: {dev: {}}\nservices: {a: {run: x}}",
       "root": "/code/x",
       "ok": false,

@@ -1,4 +1,4 @@
-//! Port of `internal/adapters/process/process_integration_test.go`.
+//! Port of `adapters/process/process_integration_test.go`.
 //! Only sh is needed; every test signals just the groups it started.
 #![cfg(unix)]
 

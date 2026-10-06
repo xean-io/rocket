@@ -1,4 +1,4 @@
-//! Ports of Go's `internal/scaffold` tests, plus golden comparisons against
+//! Ports of Go's `scaffold` tests, plus golden comparisons against
 //! output captured from the Go implementation (`rocket init --print [--json]`).
 //! Goldens live in `tests/golden` and `tests/cases`; regenerate them with the
 //! Go binary only.

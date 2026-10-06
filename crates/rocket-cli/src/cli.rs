@@ -1,5 +1,5 @@
 //! The command tree: names, aliases, flags and help text of the Go cobra
-//! CLI (`cmd/rocket`), declared with clap.
+//! CLI (the `rocket` command), declared with clap.
 
 use clap::{Args, Parser, Subcommand};
 

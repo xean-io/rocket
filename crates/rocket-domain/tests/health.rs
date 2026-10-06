@@ -1,4 +1,4 @@
-//! Port of internal/domain/health_test.go.
+//! Port of domain/health_test.go.
 
 use rocket_domain::{HealthCheck, Service, ServiceKind, health_check_for};
 use std::collections::BTreeMap;

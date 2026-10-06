@@ -1,4 +1,4 @@
-//! Port of internal/domain/graph_test.go and profiles_test.go.
+//! Port of domain/graph_test.go and profiles_test.go.
 
 use rocket_domain::{
     Error, Project, Service, ServiceKind, build_env, compose_project_name, merge_profiles,

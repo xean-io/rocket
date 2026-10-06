@@ -1,47 +1,54 @@
 # AGENTS.md — working on rocket itself
 
-rocket is a Go CLI + daemon (one binary) that supervises dev processes. Design:
-`odd/plan.md`; progress and evidence: `odd/tasks/rocket-mvp.md`; daemon API
-contract: `internal/adapters/api/README.md`.
+rocket is a Rust CLI + daemon (one binary, `rocket`) that supervises dev
+processes, plus a Tauri desktop app in `apps/desktop`. Design: `odd/plan.md`;
+progress and evidence: `odd/tasks/rust-tauri-port.md`; daemon API contract:
+`crates/rocket-api/README.md`.
 
 ## Build and test
 
 ```sh
-go build -o bin/rocket ./cmd/rocket
-go vet ./... && go vet -tags integration ./...
-go test ./...                         # unit tests, no processes or network
-go test -race ./internal/...
-go test -tags integration ./...       # e2e: builds the binary, runs a real daemon (needs python3)
-ROCKET_BIN=/abs/path/to/rocket go test -tags integration ./cmd/rocket/   # same e2e suite against a prebuilt binary (e.g. the Rust port)
-go test -tags integration_docker ./internal/adapters/compose/   # needs Docker
-GOOS=linux go build ./... && GOOS=windows go build ./...
+cargo build -p rocket-cli                          # target/debug/rocket
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace                             # unit tests: hermetic, no daemon or network
+cargo test -p rocket-cli --features e2e            # e2e: real daemon + processes (needs python3, free ports 18431-18433/18531)
+cargo test -p rocket-adapters -- --ignored         # Docker-backed compose tests (need a Docker daemon)
 ```
 
-Run targeted tests while iterating (`go test ./internal/app/ -run TestDeployGate`).
+Run targeted tests while iterating (`cargo test -p rocket-app deploy_gate`).
+
+Desktop app (`apps/desktop`, run from that directory): `pnpm install --frozen-lockfile`,
+then `pnpm typecheck`, `pnpm lint`, `pnpm test --run`, `pnpm build`. The Tauri crate
+(`apps/desktop/src-tauri`, package `rocket-desktop`) embeds the built frontend, so run
+`pnpm build` before compiling it. On Linux it also needs the webkit2gtk system
+packages; CI checks it on macOS only.
 
 ## Layout (hexagonal)
 
 | Path | Role |
 |---|---|
-| `internal/domain` | pure model: projects, services, runs, jobs, events, dependency graph |
-| `internal/ports` | interfaces the core depends on |
-| `internal/app` | use cases (up/down/status/jobs/summary/reconcile/gc); tested with fakes in `fakes_test.go` |
-| `internal/adapters/*` | process (pgid), compose, task, sqlite, probe, logs, events, api (HTTP+SSE) |
-| `internal/daemon` | composition root: unix socket + token-protected TCP listener, `daemon.json` |
-| `internal/client` | typed API client, daemon auto-start |
-| `internal/manifest` | `rocket.yaml` load/validate/schema, dotenv |
-| `internal/scaffold` | `rocket init` detection + rendering |
-| `internal/agentdocs` | `rocket agent install` content + idempotent block upsert |
-| `cmd/rocket` | cobra CLI; `*_integration_test.go` are the e2e tests |
+| `crates/rocket-domain` | pure model: projects, services, runs, jobs, events, dependency graph, and the port traits (`ports`) the core depends on |
+| `crates/rocket-manifest` | `rocket.yaml` load/validate/JSON Schema, dotenv |
+| `crates/rocket-app` | use cases (up/down/status/jobs/summary/reconcile/gc); tested with the fakes in `src/testing` |
+| `crates/rocket-adapters` | process (pgid), compose, task, sqlite, probe, logs, events |
+| `crates/rocket-api` | HTTP+SSE API (axum); the contract is `crates/rocket-api/README.md` |
+| `crates/rocket-daemon` | composition root: unix socket + token-protected TCP listener, `daemon.json` |
+| `crates/rocket-client` | typed API client, daemon auto-start |
+| `crates/rocket-scaffold` | `rocket init` detection + rendering |
+| `crates/rocket-agentdocs` | `rocket agent install` content + idempotent block upsert |
+| `crates/rocket-cli` | clap CLI (`rocket` binary); `tests/e2e` drives the built binary (feature `e2e`) |
+| `apps/desktop` | Tauri v2 + React app on top of `rocket-client` |
 | `testdata/` | fixtures only (`fixture/` for e2e, `init/` for `rocket init`, `manifests/`) |
 
 ## Rules
 
 - Test first for app/domain logic: write the failing test, then the code.
-- Integration tests use `//go:build integration` and a short temp `ROCKET_HOME`
-  under `/tmp` (unix socket paths are limited to ~104 bytes).
+- E2e tests live behind the `e2e` cargo feature so `cargo test --workspace` stays
+  fast and hermetic. They use a short temp `ROCKET_HOME` under `/tmp` (unix socket
+  paths are limited to ~104 bytes) and always clean up the daemon, even on failure.
 - Never touch the real `~/.rocket` or `~/.claude` in tests: set `ROCKET_HOME` /
   `HOME` to temp dirs. Never signal processes rocket did not start.
-- Keep `--json` shapes stable and documented in the API README; exit codes are
-  0 ok, 1 error, 2 partial/job failure, 3 confirmation required.
+- Keep `--json` shapes stable and documented in `crates/rocket-api/README.md`; exit
+  codes are 0 ok, 1 error, 2 partial/job failure, 3 confirmation required.
 - Code, comments and docs in English.

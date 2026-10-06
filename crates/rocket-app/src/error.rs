@@ -4,7 +4,7 @@
 //! the daemon puts in the API `error` field starts with the sentinel text
 //! (`invalid request: ...`). The `Display` impl reproduces that, and
 //! [`AppError::code`] is the API `code` field the Go server derives with
-//! `errors.Is` in `internal/adapters/api/server.go` (`writeErr`).
+//! `errors.Is` in `adapters/api/server.go` (`writeErr`).
 
 use rocket_domain::ports;
 

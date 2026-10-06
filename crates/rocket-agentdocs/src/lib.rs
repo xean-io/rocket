@@ -1,6 +1,6 @@
 //! Renders the instructions that teach AI agents to use rocket (a Claude Code
 //! skill and an AGENTS.md/CLAUDE.md block) and installs them idempotently
-//! (Go: `internal/agentdocs`).
+//! (Go: `agentdocs`).
 //!
 //! The texts are byte-identical to the Go output; `tests/fixtures` holds the
 //! content captured from `rocket agent install --print --json`.

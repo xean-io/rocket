@@ -1,4 +1,4 @@
-//! Ports of the Go tests in `internal/manifest/*_test.go`, plus filesystem
+//! Ports of the Go tests in `manifest/*_test.go`, plus filesystem
 //! behavior (discovery, loading, dotenv files).
 
 use rocket_domain::ports::{EnvSource, ManifestLoader};

@@ -1,4 +1,4 @@
-//! Port of internal/domain/job_test.go plus small helpers.
+//! Port of domain/job_test.go plus small helpers.
 
 use rocket_domain::{Job, JobKind, JobStatus, Run, RunState, Step, is_agent_owner};
 use time::macros::datetime;
@@ -84,10 +84,10 @@ fn step_describe_and_agent_owner() {
     assert_eq!(
         Step {
             task: String::new(),
-            run: "go test".into()
+            run: "pnpm test".into()
         }
         .describe(),
-        "run go test"
+        "run pnpm test"
     );
     assert!(is_agent_owner("agent:claude-1"));
     assert!(!is_agent_owner("user"));

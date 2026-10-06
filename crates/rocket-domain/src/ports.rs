@@ -1,4 +1,4 @@
-//! Interfaces the application core depends on (Go: `internal/ports`).
+//! Interfaces the application core depends on (Go: `ports`).
 //!
 //! Adapters implement these traits; the composition root injects them as
 //! `Arc<dyn Trait>`. See the crate docs for why the async ones use

@@ -6,7 +6,7 @@
 //! cancellation).
 //!
 //! Volume-creation hints and failed-attempt tracking are application logic
-//! (`internal/app/volume_hints.go` in Go) and are ported with the use cases,
+//! (`app/volume_hints.go` in Go) and are ported with the use cases,
 //! not here; this module only supplies the evidence they need
 //! ([`named_volumes`](ComposeDriver::named_volumes) and
 //! [`volume_exists`](ComposeDriver::volume_exists)).

@@ -331,11 +331,11 @@ environment. This is a guardrail against accidents, not a security boundary.
 ```json
 {
   "id": "j3f9a0c12be", "project": "nuvara", "name": "ci", "kind": "pipeline", "env": "dev", "profiles": ["base", "trends"], "owner": "agent:claude-123",
-  "steps": [ { "task": "lint" }, { "run": "go test ./..." } ], "args": ["-v"],
+  "steps": [ { "task": "lint" }, { "run": "pnpm test" } ], "args": ["-v"],
   "status": "failed", "step": 2, "pid": 9120, "pgid": 9120, "exit_code": 1,
   "started_at": "2026-10-05T00:14:10Z", "finished_at": "2026-10-05T00:14:42Z", "duration_ms": 32011,
   "log_path": "/Users/me/.rocket/logs/nuvara/jobs/j3f9a0c12be.log",
-  "error": "step 2 (run go test ./...) exited with code 1"
+  "error": "step 2 (run pnpm test) exited with code 1"
 }
 ```
 
@@ -372,7 +372,7 @@ otherwise.
 ```json
 { "job": "j3f9a0c12be", "project": "nuvara", "kind": "pipeline", "name": "ci", "status": "failed",
   "exit_code": 1, "duration_ms": 32011, "log_path": "…/jobs/j3f9a0c12be.log", "tail": ["…"],
-  "error": "step 2 (run go test ./...) exited with code 1" }
+  "error": "step 2 (run pnpm test) exited with code 1" }
 ```
 
 ### Summary

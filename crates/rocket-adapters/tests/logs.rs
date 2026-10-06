@@ -1,4 +1,4 @@
-//! Port of `internal/adapters/logs/logs_test.go`.
+//! Port of `adapters/logs/logs_test.go`.
 
 use rocket_adapters::events::Bus;
 use rocket_adapters::logs::{Sink, follow_file};

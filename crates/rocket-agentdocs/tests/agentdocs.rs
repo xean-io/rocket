@@ -1,4 +1,4 @@
-//! Ports of Go's `internal/agentdocs` tests plus golden comparisons against
+//! Ports of Go's `agentdocs` tests plus golden comparisons against
 //! content captured from the Go implementation
 //! (`rocket agent install --print --json`).
 

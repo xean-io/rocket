@@ -2,8 +2,8 @@
 //! not already domain types. Serde only, no I/O, so both the client and the
 //! future axum server share one definition.
 //!
-//! Field names and order follow the Go struct tags (`internal/app`,
-//! `internal/adapters/api`); `omitempty` maps to `skip_serializing_if` with
+//! Field names and order follow the Go struct tags (`app`,
+//! `adapters/api`); `omitempty` maps to `skip_serializing_if` with
 //! Go's zero-value rules. Response types ignore unknown fields (forward
 //! compatible clients); request types reject them, like the Go daemon's
 //! `DisallowUnknownFields` decoder. Query-string endpoints (`ps`, `logs`,

@@ -1,4 +1,4 @@
-//! Concrete adapters for the rocket port traits (Go: `internal/adapters/*`).
+//! Concrete adapters for the rocket port traits (Go: `adapters/*`).
 //!
 //! One module per Go adapter package: [`sqlite`], [`events`], [`logs`],
 //! [`process`], [`probe`], [`task`] and [`compose`]. Each one implements the
