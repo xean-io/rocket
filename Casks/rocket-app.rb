@@ -8,7 +8,7 @@
 # `rocket` binary, so this cask installs only the app: no `binary` stanza.
 cask "rocket-app" do
   version "1.0.0"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "8cf2058e370f3684dd353f0507bd381fdbfe35f33beee4134cc1213fb6d72d54"
 
   url "https://github.com/xean-io/rocket/releases/download/v#{version}/Rocket_#{version}_universal.dmg"
   name "Rocket"
