@@ -47,18 +47,21 @@ release:
     owner: xean-io
     name: rocket
 
+# This repo doubles as its own Homebrew tap (Casks/ on main), so the release
+# workflow's GITHUB_TOKEN can publish the cask without a cross-repo secret:
+#   brew tap xean-io/rocket https://github.com/xean-io/rocket
+#   brew install --cask xean-io/rocket/rocket
 homebrew_casks:
   - name: rocket
     repository:
       owner: xean-io
-      name: homebrew-tap
-      token: '{{ envOrDefault "TAP_GITHUB_TOKEN" "" }}'
+      name: rocket
+      branch: main
     directory: Casks
+    commit_msg_template: "chore(brew): update cask to {{ .Tag }}"
     homepage: https://github.com/xean-io/rocket
     description: Supervise dev processes for humans and AI agents
     license: MIT
-    # Skip the tap push when no token is configured; the release itself still ships.
-    skip_upload: '{{ if eq (envOrDefault "TAP_GITHUB_TOKEN" "") "" }}true{{ end }}'
     hooks:
       post:
         # Binaries are not notarized; drop the quarantine bit so macOS runs them.

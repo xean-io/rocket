@@ -18,8 +18,13 @@ so nobody leaves orphan processes holding ports.
 ## Install
 
 ```sh
-brew install --cask xean-io/tap/rocket                  # macOS / Linux
-go install github.com/xean-io/rocket/cmd/rocket@latest  # Go 1.26+, no CGO
+# Homebrew (macOS / Linux)
+brew tap xean-io/rocket https://github.com/xean-io/rocket
+brew install --cask xean-io/rocket/rocket
+
+# or with Go 1.26+ (no CGO)
+go install github.com/xean-io/rocket/cmd/rocket@latest
+
 rocket daemon start          # optional: any command auto-starts the daemon
 ```
 
@@ -29,8 +34,8 @@ Prebuilt archives for macOS, Linux and Windows (amd64/arm64) are on the
 ### Releasing
 
 Push a `vX.Y.Z` tag; the `release` workflow runs GoReleaser, publishes the
-GitHub release and, when the `TAP_GITHUB_TOKEN` secret is set, updates the
-cask in `xean-io/homebrew-tap`. Dry run locally with
+GitHub release and commits the updated cask to `Casks/rocket.rb` on `main`
+(this repo is its own Homebrew tap). Dry run locally with
 `goreleaser release --snapshot --clean`.
 
 State lives in `~/.rocket` (override with `ROCKET_HOME`).

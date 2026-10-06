@@ -24,7 +24,5 @@ jobs:
           version: "~> v2"
           args: release --clean
         env:
+          # Also publishes Casks/rocket.rb to main (contents: write above).
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Fine-grained PAT with contents:write on xean-io/homebrew-tap.
-          # When unset, the Homebrew cask upload is skipped.
-          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
